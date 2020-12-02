@@ -70,6 +70,7 @@
   <properties>
     <javaVersion>8</javaVersion>
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
+    <failsafe.redirectTestOutputToFile>${surefire.redirectTestOutputToFile}</failsafe.redirectTestOutputToFile>
     <maven.site.path>resolver-archives/resolver-LATEST</maven.site.path>
     <checkstyle.violation.ignore>None</checkstyle.violation.ignore>
     <sisuVersion>0.3.4</sisuVersion>
@@ -92,6 +93,7 @@
     <module>maven-resolver-transport-wagon</module>
     <module>maven-resolver-synccontext-global</module>
     <module>maven-resolver-synccontext-redisson</module>
+    <module>maven-resolver-synccontext-named</module>
     <module>maven-resolver-demos</module>
   </modules>
 
@@ -324,6 +326,26 @@
               <java.io.tmpdir>${project.build.directory}/surefire-tmp</java.io.tmpdir>
             </systemPropertyVariables>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <configuration>
+            <failIfNoTests>false</failIfNoTests>
+            <argLine>-Xmx128m</argLine>
+            <redirectTestOutputToFile>${failsafe.redirectTestOutputToFile}</redirectTestOutputToFile>
+            <systemPropertyVariables>
+              <java.io.tmpdir>${project.build.directory}/failsafe-tmp</java.io.tmpdir>
+            </systemPropertyVariables>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
         <plugin>
           <groupId>org.eclipse.sisu</groupId>
