@@ -84,6 +84,7 @@
     <module>maven-resolver-api</module>
     <module>maven-resolver-spi</module>
     <module>maven-resolver-util</module>
+    <module>maven-resolver-named</module>
     <module>maven-resolver-impl</module>
     <module>maven-resolver-test-util</module>
     <module>maven-resolver-connector-basic</module>
@@ -112,6 +113,11 @@
       <dependency>
         <groupId>org.apache.maven.resolver</groupId>
         <artifactId>maven-resolver-util</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.resolver</groupId>
+        <artifactId>maven-resolver-named</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
