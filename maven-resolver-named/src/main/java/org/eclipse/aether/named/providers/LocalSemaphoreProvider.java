@@ -30,10 +30,12 @@ import javax.inject.Singleton;
  * Provider of {@link LocalSemaphoreNamedLockFactory}.
  */
 @Singleton
-@Named( "semaphore-local" )
+@Named( LocalSemaphoreProvider.NAME )
 public class LocalSemaphoreProvider
     implements Provider<NamedLockFactory>
 {
+  public static final String NAME = "semaphore-local";
+
   @Override
   public NamedLockFactory get()
   {

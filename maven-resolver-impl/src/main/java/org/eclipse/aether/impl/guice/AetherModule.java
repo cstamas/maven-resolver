@@ -20,10 +20,13 @@ package org.eclipse.aether.impl.guice;
  */
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.eclipse.aether.RepositoryListener;
@@ -38,6 +41,12 @@ import org.eclipse.aether.impl.OfflineController;
 import org.eclipse.aether.impl.RemoteRepositoryManager;
 import org.eclipse.aether.impl.RepositoryConnectorProvider;
 import org.eclipse.aether.impl.RepositoryEventDispatcher;
+import org.eclipse.aether.internal.impl.synccontext.NamedSyncContextFactory;
+import org.eclipse.aether.named.NamedLockFactory;
+import org.eclipse.aether.named.providers.GlobalReadWriteLockProvider;
+import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
+import org.eclipse.aether.named.providers.LocalSemaphoreProvider;
+import org.eclipse.aether.named.providers.NoLockProvider;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 import org.eclipse.aether.impl.UpdateCheckManager;
 import org.eclipse.aether.impl.UpdatePolicyAnalyzer;
@@ -55,7 +64,6 @@ import org.eclipse.aether.internal.impl.DefaultRepositoryConnectorProvider;
 import org.eclipse.aether.internal.impl.DefaultRepositoryEventDispatcher;
 import org.eclipse.aether.internal.impl.DefaultRepositoryLayoutProvider;
 import org.eclipse.aether.internal.impl.DefaultRepositorySystem;
-import org.eclipse.aether.internal.impl.DefaultSyncContextFactory;
 import org.eclipse.aether.internal.impl.DefaultTransporterProvider;
 import org.eclipse.aether.internal.impl.DefaultUpdateCheckManager;
 import org.eclipse.aether.internal.impl.DefaultUpdatePolicyAnalyzer;
@@ -134,7 +142,7 @@ public class AetherModule
         bind( FileProcessor.class ) //
         .to( DefaultFileProcessor.class ).in( Singleton.class );
         bind( SyncContextFactory.class ) //
-        .to( DefaultSyncContextFactory.class ).in( Singleton.class );
+        .to( NamedSyncContextFactory.class ).in( Singleton.class );
         bind( RepositoryEventDispatcher.class ) //
         .to( DefaultRepositoryEventDispatcher.class ).in( Singleton.class );
         bind( OfflineController.class ) //
@@ -146,8 +154,33 @@ public class AetherModule
         bind( LocalRepositoryManagerFactory.class ).annotatedWith( Names.named( "enhanced" ) ) //
         .to( EnhancedLocalRepositoryManagerFactory.class ).in( Singleton.class );
 
+        bind( NamedLockFactory.class ).annotatedWith( Names.named( NoLockProvider.NAME ) )
+                .toProvider( NoLockProvider.class ).in( Singleton.class );
+        bind( NamedLockFactory.class ).annotatedWith( Names.named( GlobalReadWriteLockProvider.NAME ) )
+                .toProvider( GlobalReadWriteLockProvider.class ).in( Singleton.class );
+        bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalReadWriteLockProvider.NAME ) )
+                .toProvider( LocalReadWriteLockProvider.class ).in( Singleton.class );
+        bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalSemaphoreProvider.NAME ) )
+                .toProvider( LocalSemaphoreProvider.class ).in( Singleton.class );
+
         install( new Slf4jModule() );
 
+    }
+
+    @Provides
+    @Singleton
+    Map<String, Provider<NamedLockFactory>> provideNamedLockFactories(
+            @Named( NoLockProvider.NAME ) Provider<NamedLockFactory> nolock,
+            @Named( GlobalReadWriteLockProvider.NAME ) Provider<NamedLockFactory> global,
+            @Named( LocalReadWriteLockProvider.NAME ) Provider<NamedLockFactory> localRwLock,
+            @Named( LocalSemaphoreProvider.NAME ) Provider<NamedLockFactory> localSemaphore )
+    {
+        Map<String, Provider<NamedLockFactory>> factories = new HashMap<>();
+        factories.put( NoLockProvider.NAME, nolock );
+        factories.put( GlobalReadWriteLockProvider.NAME, global );
+        factories.put( LocalReadWriteLockProvider.NAME, localRwLock );
+        factories.put( LocalSemaphoreProvider.NAME, localSemaphore );
+        return Collections.unmodifiableMap( factories );
     }
 
     @Provides

@@ -22,6 +22,7 @@ package org.eclipse.aether.internal.impl.synccontext;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.named.NamedLockFactory;
+import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 
 import javax.annotation.PreDestroy;
@@ -53,12 +54,12 @@ public final class NamedSyncContextFactory
     private final SyncContextFactoryAdapter syncContextFactoryAdapter;
 
     /**
-     * Constructor used with SISU, where factories are injected and selected based on key.
+     * Constructor used with DI, where factories are injected and selected based on key.
      */
     @Inject
     public NamedSyncContextFactory( final Map<String, Provider<NamedLockFactory>> factories )
     {
-        String name = System.getProperty( "synccontext.named.factory", "rwlock-local" );
+        String name = System.getProperty( "synccontext.named.factory", LocalReadWriteLockProvider.NAME );
         Provider<NamedLockFactory> provider = factories.get( name );
         if ( provider == null )
         {
@@ -74,6 +75,16 @@ public final class NamedSyncContextFactory
     {
         Objects.requireNonNull( namedLockFactory );
         this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( namedLockFactory, time, timeUnit );
+    }
+
+    /**
+     * Default constructor.
+     */
+    public NamedSyncContextFactory()
+    {
+        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter(
+                new LocalReadWriteLockProvider().get(), TIME, TIME_UNIT
+        );
     }
 
     @Override
