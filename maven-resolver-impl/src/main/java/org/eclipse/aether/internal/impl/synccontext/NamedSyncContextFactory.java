@@ -70,9 +70,10 @@ public final class NamedSyncContextFactory
     /**
      * Constructor when factory already exists, or to be used in tests.
      */
-    public NamedSyncContextFactory( final SyncContextFactoryAdapter syncContextFactoryAdapter )
+    public NamedSyncContextFactory( final NamedLockFactory namedLockFactory, long time, TimeUnit timeUnit )
     {
-        this.syncContextFactoryAdapter = Objects.requireNonNull( syncContextFactoryAdapter );
+        Objects.requireNonNull( namedLockFactory );
+        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( namedLockFactory, time, timeUnit );
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.eclipse.aether.internal.impl.synccontext;
+package org.eclipse.aether.named;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ package org.eclipse.aether.internal.impl.synccontext;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.named.NamedLockFactory;
+import org.eclipse.aether.internal.impl.synccontext.NamedSyncContextFactory;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 import org.junit.AfterClass;

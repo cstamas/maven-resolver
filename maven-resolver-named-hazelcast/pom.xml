@@ -28,22 +28,32 @@
     <version>1.7.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>maven-resolver-named</artifactId>
+  <artifactId>maven-resolver-named-hazelcast</artifactId>
 
-  <name>Maven Artifact Resolver Named Locks</name>
+  <name>Maven Artifact Resolver Named Locks using Hazelcast</name>
   <description>
-      A synchronization utility implementation using Named locks.
+      A synchronization utility implementation using Hazelcast.
   </description>
 
   <properties>
-    <Automatic-Module-Name>org.apache.maven.resolver.named</Automatic-Module-Name>
+    <Automatic-Module-Name>org.apache.maven.resolver.named.hazelcast</Automatic-Module-Name>
     <Bundle-SymbolicName>${Automatic-Module-Name}</Bundle-SymbolicName>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-named</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast</artifactId>
+      <version>3.12.11</version>
+    </dependency>
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast-client</artifactId>
+      <version>3.12.11</version>
     </dependency>
     <dependency>
       <groupId>javax.inject</groupId>
@@ -70,6 +80,11 @@
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-impl</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -93,4 +108,18 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>it</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
