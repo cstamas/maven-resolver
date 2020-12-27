@@ -94,9 +94,6 @@
     <module>maven-resolver-transport-file</module>
     <module>maven-resolver-transport-http</module>
     <module>maven-resolver-transport-wagon</module>
-    <module>maven-resolver-synccontext-global</module>
-    <module>maven-resolver-synccontext-redisson</module>
-    <module>maven-resolver-synccontext-named</module>
     <module>maven-resolver-demos</module>
   </modules>
 
