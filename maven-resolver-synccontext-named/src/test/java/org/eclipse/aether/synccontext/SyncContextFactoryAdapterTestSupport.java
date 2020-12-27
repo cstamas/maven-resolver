@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.impl.SyncContextFactory;
+import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.repository.LocalRepository;
 import org.junit.AfterClass;
