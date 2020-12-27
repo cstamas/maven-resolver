@@ -31,6 +31,8 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Named {@link SyncContextFactory} implementation that selects underlying {@link NamedLockFactory} implementation
@@ -58,18 +60,37 @@ import java.util.Map;
 public final class NamedSyncContextFactory
         implements SyncContextFactory
 {
+    private static final long TIME = Long.getLong(
+            NamedSyncContextFactory.class.getName() + ".time", 10L
+    );
+
+    private static final TimeUnit TIME_UNIT = TimeUnit.valueOf( System.getProperty(
+            NamedSyncContextFactory.class.getName() + ".timeunit", TimeUnit.SECONDS.name()
+    ) );
+
     private final SyncContextFactoryAdapter syncContextFactoryAdapter;
 
+    /**
+     * Constructor used with SISU, where factories are injected and selected based on key.
+     */
     @Inject
     public NamedSyncContextFactory( final Map<String, Provider<NamedLockFactory>> factories )
     {
-        String name = System.getProperty( "synccontext.named.factory", "local" );
+        String name = System.getProperty( "synccontext.named.factory", "rwlock-local" );
         Provider<NamedLockFactory> provider = factories.get( name );
         if ( provider == null )
         {
             throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + name );
         }
-        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( provider.get() );
+        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( provider.get(), TIME, TIME_UNIT );
+    }
+
+    /**
+     * Constructor when factory already exists, or to be used in tests.
+     */
+    public NamedSyncContextFactory( final SyncContextFactoryAdapter syncContextFactoryAdapter )
+    {
+        this.syncContextFactoryAdapter = Objects.requireNonNull( syncContextFactoryAdapter );
     }
 
     @Override

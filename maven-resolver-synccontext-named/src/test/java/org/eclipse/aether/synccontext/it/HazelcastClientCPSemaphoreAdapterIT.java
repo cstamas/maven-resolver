@@ -20,7 +20,6 @@ package org.eclipse.aether.synccontext.it;
  */
 
 import org.eclipse.aether.named.HazelcastClientUtils;
-import org.eclipse.aether.synccontext.SyncContextFactoryAdapter;
 import org.eclipse.aether.synccontext.SyncContextFactoryAdapterTestSupport;
 import org.eclipse.aether.named.providers.HazelcastClientCPSemaphoreProvider;
 import org.junit.AfterClass;
@@ -34,14 +33,11 @@ public class HazelcastClientCPSemaphoreAdapterIT
     @BeforeClass
     public static void createNamedLockFactory() {
         utils = new HazelcastClientUtils().createCpCluster();
-        adapter = new SyncContextFactoryAdapter(new HazelcastClientCPSemaphoreProvider().get(), ADAPTER_TIME, ADAPTER_TIME_UNIT);
+        setNamedLockFactory(new HazelcastClientCPSemaphoreProvider().get());
     }
 
     @AfterClass
     public static void cleanup() {
-        if (adapter != null) {
-            adapter.shutdown();
-        }
         if (utils != null) {
             utils.cleanup();
         }

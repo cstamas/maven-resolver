@@ -30,7 +30,9 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.impl.SyncContextFactory;
+import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.repository.LocalRepository;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,17 +45,30 @@ import static org.mockito.Mockito.when;
  */
 public abstract class SyncContextFactoryAdapterTestSupport
 {
-  protected static final long ADAPTER_TIME = 100L;
+  private static final long ADAPTER_TIME = 100L;
 
-  protected static final TimeUnit ADAPTER_TIME_UNIT = TimeUnit.MILLISECONDS;
+  private static final TimeUnit ADAPTER_TIME_UNIT = TimeUnit.MILLISECONDS;
 
   /**
-   * Subclass should populate this field, preferable using {@link org.junit.BeforeClass}, but subclass
-   * must take care of proper cleanup as well!
+   * Subclass should populate this field, using {@link #setNamedLockFactory(NamedLockFactory)}, but subclass
+   * must take care of proper cleanup as well, if needed!
    */
-  protected static SyncContextFactoryAdapter adapter;
+  private static NamedSyncContextFactory adapter;
 
   private RepositorySystemSession session;
+
+  protected static void setNamedLockFactory(final NamedLockFactory namedLockFactory) {
+    adapter = new NamedSyncContextFactory(
+            new SyncContextFactoryAdapter(namedLockFactory, ADAPTER_TIME, ADAPTER_TIME_UNIT)
+    );
+  }
+
+  @AfterClass
+  public static void cleanupAdapter() {
+    if (adapter != null) {
+      adapter.shutdown();
+    }
+  }
 
   @Before
   public void before() throws IOException {
@@ -184,20 +199,20 @@ public abstract class SyncContextFactoryAdapterTestSupport
     final boolean shared;
     final CountDownLatch winner;
     final CountDownLatch loser;
-    final SyncContextFactoryAdapter adapter;
+    final SyncContextFactory syncContextFactory;
     final RepositorySystemSession session;
     final Access chained;
 
     public Access(boolean shared,
                   CountDownLatch winner,
                   CountDownLatch loser,
-                  SyncContextFactoryAdapter adapter,
+                  SyncContextFactory syncContextFactory,
                   RepositorySystemSession session,
                   Access chained) {
       this.shared = shared;
       this.winner = winner;
       this.loser = loser;
-      this.adapter = adapter;
+      this.syncContextFactory = syncContextFactory;
       this.session = session;
       this.chained = chained;
     }
@@ -205,7 +220,7 @@ public abstract class SyncContextFactoryAdapterTestSupport
     @Override
     public void run() {
       try {
-        try (SyncContext syncContext = adapter.newInstance(session, shared)) {
+        try (SyncContext syncContext = syncContextFactory.newInstance(session, shared)) {
           syncContext.acquire(
                   Arrays.asList(new DefaultArtifact("groupId:artifactId:1.0"), new DefaultArtifact("groupId:artifactId:1.1")),
                   null

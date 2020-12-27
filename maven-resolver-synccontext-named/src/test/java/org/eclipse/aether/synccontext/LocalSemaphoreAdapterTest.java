@@ -25,9 +25,8 @@ import org.junit.BeforeClass;
 public class LocalSemaphoreAdapterTest
     extends SyncContextFactoryAdapterTestSupport
 {
-
     @BeforeClass
     public static void createNamedLockFactory() {
-        adapter = new SyncContextFactoryAdapter(new LocalSemaphoreProvider().get(), ADAPTER_TIME, ADAPTER_TIME_UNIT);
+        setNamedLockFactory(new LocalSemaphoreProvider().get());
     }
 }

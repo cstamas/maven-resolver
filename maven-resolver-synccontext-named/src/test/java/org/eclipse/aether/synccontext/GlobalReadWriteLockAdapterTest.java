@@ -25,9 +25,8 @@ import org.junit.BeforeClass;
 public class GlobalReadWriteLockAdapterTest
     extends SyncContextFactoryAdapterTestSupport
 {
-
     @BeforeClass
     public static void createNamedLockFactory() {
-        adapter = new SyncContextFactoryAdapter(new GlobalReadWriteLockProvider().get(), ADAPTER_TIME, ADAPTER_TIME_UNIT);
+        setNamedLockFactory(new GlobalReadWriteLockProvider().get());
     }
 }

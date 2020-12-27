@@ -19,25 +19,15 @@ package org.eclipse.aether.synccontext.it;
  * under the License.
  */
 
-import org.eclipse.aether.synccontext.SyncContextFactoryAdapter;
 import org.eclipse.aether.synccontext.SyncContextFactoryAdapterTestSupport;
 import org.eclipse.aether.named.providers.HazelcastSemaphoreProvider;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 public class HazelcastSemaphoreAdapterIT
     extends SyncContextFactoryAdapterTestSupport
 {
-
     @BeforeClass
     public static void createNamedLockFactory() {
-        adapter = new SyncContextFactoryAdapter(new HazelcastSemaphoreProvider().get(), ADAPTER_TIME, ADAPTER_TIME_UNIT);
-    }
-
-    @AfterClass
-    public static void cleanup() {
-        if (adapter != null) {
-            adapter.shutdown();
-        }
+        setNamedLockFactory(new HazelcastSemaphoreProvider().get());
     }
 }
