@@ -22,8 +22,7 @@ package org.eclipse.aether.synccontext;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.impl.SyncContextFactory;
-import org.eclipse.aether.internal.named.NamedLockFactory;
-import org.eclipse.aether.internal.named.SyncContextFactoryAdapter;
+import org.eclipse.aether.named.NamedLockFactory;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Priority;
