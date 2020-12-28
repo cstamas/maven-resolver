@@ -49,16 +49,18 @@ public final class GlobalReadWriteLockProvider
     }
 
     /**
-     * A global named lock factory that actually uses one singleton named lock instance for all names.
+     * A global named lock factory that actually uses one {@link ReentrantReadWriteLock} instance for all names.
      */
-    public static final class GlobalNamedLockFactory implements NamedLockFactory
+    public static final class GlobalNamedLockFactory implements NamedLockFactory, NamedLock
     {
-        private final GlobalNamedLock globalNamedLock = new GlobalNamedLock();
+        private final ReentrantReadWriteLock global = new ReentrantReadWriteLock();
+
+        private final ConcurrentLinkedDeque<Lock> steps = new ConcurrentLinkedDeque<>();
 
         @Override
         public NamedLock getLock( String name )
         {
-            return globalNamedLock;
+            return this;
         }
 
         @Override
@@ -66,16 +68,6 @@ public final class GlobalReadWriteLockProvider
         {
             // nop
         }
-    }
-
-    /**
-     * A global named lock that uses one single reentrant read-write lock.
-     */
-    public static final class GlobalNamedLock implements NamedLock
-    {
-        private final ReentrantReadWriteLock global = new ReentrantReadWriteLock();
-
-        private final ConcurrentLinkedDeque<Lock> steps = new ConcurrentLinkedDeque<>();
 
         @Override
         public String name()
