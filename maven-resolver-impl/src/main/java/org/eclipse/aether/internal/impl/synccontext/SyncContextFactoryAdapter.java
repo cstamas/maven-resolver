@@ -98,7 +98,7 @@ public final class SyncContextFactoryAdapter
     {
         private static final String CONFIG_PROP_DISCRIMINATOR = "aether.syncContext.named.discriminator";
 
-        private static final String KEY_PREFIX = "mvn:resolver:";
+        private static final String KEY_PREFIX = "maven:resolver:";
 
         private static final Logger LOGGER = LoggerFactory.getLogger( AdaptedLockSyncContext.class );
 
@@ -108,7 +108,7 @@ public final class SyncContextFactoryAdapter
 
         private final NamedLockFactory namedLockFactory;
 
-        private final long time;
+        private final long timeOut;
 
         private final TimeUnit timeUnit;
 
@@ -119,14 +119,14 @@ public final class SyncContextFactoryAdapter
         private AdaptedLockSyncContext( final RepositorySystemSession session,
                                         final String hostname,
                                         final NamedLockFactory namedLockFactory,
-                                        final long time,
+                                        final long timeOut,
                                         final TimeUnit timeUnit,
                                         final boolean shared )
         {
             this.session = session;
             this.hostname = hostname;
             this.namedLockFactory = namedLockFactory;
-            this.time = time;
+            this.timeOut = timeOut;
             this.timeUnit = timeUnit;
             this.shared = shared;
             this.locks = new ArrayDeque<>();
@@ -189,11 +189,11 @@ public final class SyncContextFactoryAdapter
                     boolean locked;
                     if ( shared )
                     {
-                        locked = namedLock.lockShared( time, timeUnit );
+                        locked = namedLock.lockShared( timeOut, timeUnit );
                     }
                     else
                     {
-                        locked = namedLock.lockExclusively( time, timeUnit );
+                        locked = namedLock.lockExclusively( timeOut, timeUnit );
                     }
 
                     if ( !locked )
@@ -212,7 +212,7 @@ public final class SyncContextFactoryAdapter
                     throw new RuntimeException( e );
                 }
             }
-            LOGGER.trace( "Total new locks acquired: {}", acquiredLockCount );
+            LOGGER.trace( "Total locks acquired: {}", acquiredLockCount );
         }
 
         private String createDiscriminator()

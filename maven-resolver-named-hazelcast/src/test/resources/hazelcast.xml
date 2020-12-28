@@ -33,7 +33,7 @@
         <join>
             <multicast enabled="false"/>
             <tcp-ip>
-                <interface>127.0.0.1</interface>
+                <interface>localhost</interface>
             </tcp-ip>
         </join>
     </network>

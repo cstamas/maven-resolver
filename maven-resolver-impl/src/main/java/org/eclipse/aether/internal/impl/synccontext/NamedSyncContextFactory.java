@@ -42,12 +42,12 @@ import java.util.concurrent.TimeUnit;
 public final class NamedSyncContextFactory
         implements SyncContextFactory
 {
-    private static final long TIME = Long.getLong(
-            NamedSyncContextFactory.class.getName() + ".time", 10L
+    private static final long TIME_OUT = Long.getLong(
+            "aether.syncContext.named.timeOut", 30L
     );
 
     private static final TimeUnit TIME_UNIT = TimeUnit.valueOf( System.getProperty(
-            NamedSyncContextFactory.class.getName() + ".timeunit", TimeUnit.SECONDS.name()
+            "aether.syncContext.named.timeUnit", TimeUnit.SECONDS.name()
     ) );
 
     private final SyncContextFactoryAdapter syncContextFactoryAdapter;
@@ -64,7 +64,7 @@ public final class NamedSyncContextFactory
         {
             throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + name );
         }
-        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( provider.get(), TIME, TIME_UNIT );
+        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( provider.get(), TIME_OUT, TIME_UNIT );
     }
 
     /**
@@ -73,7 +73,7 @@ public final class NamedSyncContextFactory
     public NamedSyncContextFactory()
     {
         this.syncContextFactoryAdapter = new SyncContextFactoryAdapter(
-                new LocalReadWriteLockProvider().get(), TIME, TIME_UNIT
+                new LocalReadWriteLockProvider().get(), TIME_OUT, TIME_UNIT
         );
     }
 

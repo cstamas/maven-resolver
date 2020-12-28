@@ -22,8 +22,8 @@ package org.eclipse.aether.named;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A named lock, functionally similar to existing JVM and other implementations. Does support boxing, but no
- * lock upgrade is supported. Usual pattern to use this lock:
+ * A named lock, functionally similar to existing JVM and other implementations. Must support boxing (reentrancy), but
+ * no lock upgrade is supported. Usual pattern to use this lock:
  * <pre>
  *   try (NamedLock lock = factory.getLock("resourceName")) {
  *     if (lock.lockExclusively(10L, Timeunit.SECONDS)) {
