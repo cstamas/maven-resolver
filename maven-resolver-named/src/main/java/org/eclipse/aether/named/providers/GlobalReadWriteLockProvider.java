@@ -25,8 +25,8 @@ import org.eclipse.aether.named.NamedLockFactory;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import java.util.ArrayDeque;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -75,7 +75,7 @@ public final class GlobalReadWriteLockProvider
     {
         private final ReentrantReadWriteLock global = new ReentrantReadWriteLock();
 
-        private final ArrayDeque<Lock> steps = new ArrayDeque<>();
+        private final ConcurrentLinkedDeque<Lock> steps = new ConcurrentLinkedDeque<>();
 
         @Override
         public String name()
