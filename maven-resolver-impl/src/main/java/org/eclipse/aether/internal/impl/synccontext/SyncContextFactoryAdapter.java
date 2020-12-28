@@ -61,8 +61,8 @@ final class SyncContextFactoryAdapter
     private final String hostname;
 
     SyncContextFactoryAdapter( final NamedLockFactory namedLockFactory,
-                                      final long time,
-                                      final TimeUnit timeUnit )
+                               final long time,
+                               final TimeUnit timeUnit )
     {
         this.namedLockFactory = namedLockFactory;
         this.time = time;
