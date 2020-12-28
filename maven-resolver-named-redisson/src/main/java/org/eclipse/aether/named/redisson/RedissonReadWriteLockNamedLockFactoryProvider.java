@@ -1,4 +1,4 @@
-package org.eclipse.aether.named.hazelcast;
+package org.eclipse.aether.named.redisson;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,8 +19,6 @@ package org.eclipse.aether.named.hazelcast;
  * under the License.
  */
 
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 import org.eclipse.aether.named.NamedLockFactory;
 
 import javax.inject.Named;
@@ -28,24 +26,18 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 /**
- * Provider of {@link HazelcastSemaphoreNamedLockFactory} using Hazelcast and and {@link
- * HazelcastInstance#getSemaphore(String)} method..
+ * Provider of {@link RedissonReadWriteLockNamedLockFactory} using Redisson and {@link org.redisson.api.RReadWriteLock}.
  */
 @Singleton
-@Named( HazelcastSemaphoreProvider.NAME )
-public class HazelcastSemaphoreProvider
+@Named( RedissonReadWriteLockNamedLockFactoryProvider.NAME )
+public class RedissonReadWriteLockNamedLockFactoryProvider
     implements Provider<NamedLockFactory>
 {
-  public static final String NAME = "semaphore-hazelcast";
+  public static final String NAME = "rwlock-redisson";
 
   @Override
   public NamedLockFactory get()
   {
-    return new HazelcastSemaphoreNamedLockFactory(
-        Hazelcast.newHazelcastInstance(),
-        HazelcastInstance::getSemaphore,
-        true,
-        true
-    );
+    return new RedissonReadWriteLockNamedLockFactory();
   }
 }

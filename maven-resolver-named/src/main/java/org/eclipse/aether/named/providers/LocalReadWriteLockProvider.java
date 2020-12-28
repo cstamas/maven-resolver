@@ -27,7 +27,7 @@ import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.named.support.local.LocalReadWriteLockNamedLockFactory;
 
 /**
- * Provider of {@link LocalReadWriteLockNamedLockFactory}.
+ * Provider of {@link LocalReadWriteLockNamedLockFactory} using {@link java.util.concurrent.locks.ReentrantReadWriteLock}.
  */
 @Singleton
 @Named( LocalReadWriteLockProvider.NAME )

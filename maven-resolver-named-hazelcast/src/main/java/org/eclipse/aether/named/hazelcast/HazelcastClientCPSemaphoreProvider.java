@@ -32,10 +32,11 @@ import javax.inject.Singleton;
  * cluster the client is connecting to must be CP enabled cluster.
  */
 @Singleton
-@Named( "semaphore-cp-hazelcast-client" )
+@Named( HazelcastClientCPSemaphoreProvider.NAME )
 public class HazelcastClientCPSemaphoreProvider
     implements Provider<NamedLockFactory>
 {
+  public static final String NAME = "semaphore-cp-hazelcast-client";
   @Override
   public NamedLockFactory get()
   {

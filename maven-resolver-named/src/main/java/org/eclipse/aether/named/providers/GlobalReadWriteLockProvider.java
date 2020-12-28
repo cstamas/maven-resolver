@@ -32,7 +32,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Provider of {@link GlobalNamedLockFactory}. This uses one "global" lock, is really not a "named" lock.
+ * Provider of {@link GlobalNamedLockFactory}. This uses one "global" {@link ReentrantReadWriteLock}, is really not a
+ * "named" lock.
  */
 @Singleton
 @Named( GlobalReadWriteLockProvider.NAME )

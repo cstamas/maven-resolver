@@ -27,7 +27,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 /**
- * Provider of {@link LocalSemaphoreNamedLockFactory}.
+ * Provider of {@link LocalSemaphoreNamedLockFactory} using {@link java.util.concurrent.Semaphore}.
  */
 @Singleton
 @Named( LocalSemaphoreProvider.NAME )

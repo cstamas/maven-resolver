@@ -32,10 +32,12 @@ import javax.inject.Singleton;
  * HazelcastInstance#getSemaphore(String)} method.
  */
 @Singleton
-@Named( "semaphore-hazelcast-client" )
+@Named( HazelcastClientSemaphoreProvider.NAME )
 public class HazelcastClientSemaphoreProvider
     implements Provider<NamedLockFactory>
 {
+  public static final String NAME = "semaphore-hazelcast-client";
+
   @Override
   public NamedLockFactory get()
   {

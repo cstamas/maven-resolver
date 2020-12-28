@@ -28,8 +28,8 @@ import javax.inject.Singleton;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Provider of {@link NoLockNamedLockFactory}, that does not lock at all. This test is meant for testing purposes only
- * and will eventually be removed.
+ * Provider of {@link NoLockNamedLockFactory}, that does not lock at all. This class is meant for testing purposes only
+ * and will eventually be removed. Should not be used in production.
  */
 @Singleton
 @Named( NoLockProvider.NAME )
