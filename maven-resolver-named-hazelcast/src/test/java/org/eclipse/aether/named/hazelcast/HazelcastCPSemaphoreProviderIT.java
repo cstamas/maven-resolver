@@ -23,12 +23,12 @@ import org.eclipse.aether.named.NamedLockFactoryTestSupport;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-public class HazelcastSemaphoreProviderIT
+public class HazelcastCPSemaphoreProviderIT
     extends NamedLockFactoryTestSupport {
 
     @BeforeClass
     public static void createNamedLockFactory() {
-        namedLockFactory = new HazelcastSemaphoreProvider().get();
+        namedLockFactory = new HazelcastCPSemaphoreProvider().get();
     }
 
     @AfterClass

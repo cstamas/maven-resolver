@@ -36,7 +36,7 @@ import javax.inject.Singleton;
 public class HazelcastClientCPSemaphoreProvider
     implements Provider<NamedLockFactory>
 {
-  public static final String NAME = "semaphore-cp-hazelcast-client";
+  public static final String NAME = "semaphore-hazelcast-client";
   @Override
   public NamedLockFactory get()
   {

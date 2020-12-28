@@ -20,7 +20,6 @@ package org.eclipse.aether.named.hazelcast;
  */
 
 import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 import org.eclipse.aether.named.NamedLockFactory;
 
 import javax.inject.Named;
@@ -28,23 +27,23 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 /**
- * Provider of {@link HazelcastSemaphoreNamedLockFactory} using Hazelcast and and {@link
- * HazelcastInstance#getSemaphore(String)} method..
+ * Provider of {@link HazelcastSemaphoreNamedLockFactory} using Hazelcast and {@link
+ * com.hazelcast.core.HazelcastInstance#getCPSubsystem()} method to get CP semaphore. For this to work, the Hazelcast
+ * cluster the client is connecting to must be CP enabled cluster.
  */
 @Singleton
-@Named( HazelcastSemaphoreProvider.NAME )
-public class HazelcastSemaphoreProvider
+@Named( HazelcastCPSemaphoreProvider.NAME )
+public class HazelcastCPSemaphoreProvider
     implements Provider<NamedLockFactory>
 {
   public static final String NAME = "semaphore-hazelcast";
-
   @Override
   public NamedLockFactory get()
   {
     return new HazelcastSemaphoreNamedLockFactory(
         Hazelcast.newHazelcastInstance(),
-        HazelcastInstance::getSemaphore,
-        true,
+        ( hazelcastInstance, name ) -> hazelcastInstance.getCPSubsystem().getSemaphore( name ),
+        false,
         true
     );
   }
