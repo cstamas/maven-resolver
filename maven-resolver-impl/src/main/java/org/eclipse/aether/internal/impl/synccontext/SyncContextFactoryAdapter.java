@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Adapter to adapt {@link NamedLockFactory} and {@link NamedLock} to {@link SyncContext}.
  */
-final class SyncContextFactoryAdapter
+public final class SyncContextFactoryAdapter
 {
     private static final String DEFAULT_DISCRIMINATOR_DIGEST = "da39a3ee5e6b4b0d3255bfef95601890afd80709";
 
@@ -60,9 +60,9 @@ final class SyncContextFactoryAdapter
 
     private final String hostname;
 
-    SyncContextFactoryAdapter( final NamedLockFactory namedLockFactory,
-                               final long time,
-                               final TimeUnit timeUnit )
+    public SyncContextFactoryAdapter( final NamedLockFactory namedLockFactory,
+                                      final long time,
+                                      final TimeUnit timeUnit )
     {
         this.namedLockFactory = namedLockFactory;
         this.time = time;

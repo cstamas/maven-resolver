@@ -31,7 +31,6 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -66,15 +65,6 @@ public final class NamedSyncContextFactory
             throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + name );
         }
         this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( provider.get(), TIME, TIME_UNIT );
-    }
-
-    /**
-     * Constructor when factory already exists, or to be used in tests.
-     */
-    public NamedSyncContextFactory( final NamedLockFactory namedLockFactory, long time, TimeUnit timeUnit )
-    {
-        Objects.requireNonNull( namedLockFactory );
-        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( namedLockFactory, time, timeUnit );
     }
 
     /**
