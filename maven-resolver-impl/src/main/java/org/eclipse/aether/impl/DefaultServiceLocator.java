@@ -52,7 +52,7 @@ import org.eclipse.aether.internal.impl.EnhancedLocalRepositoryManagerFactory;
 import org.eclipse.aether.internal.impl.Maven2RepositoryLayoutFactory;
 import org.eclipse.aether.internal.impl.SimpleLocalRepositoryManagerFactory;
 import org.eclipse.aether.internal.impl.slf4j.Slf4jLoggerFactory;
-import org.eclipse.aether.internal.impl.synccontext.NamedSyncContextFactory;
+import org.eclipse.aether.internal.impl.synccontext.DefaultSyncContextFactory;
 import org.eclipse.aether.spi.connector.checksum.ChecksumPolicyProvider;
 import org.eclipse.aether.spi.connector.layout.RepositoryLayoutFactory;
 import org.eclipse.aether.spi.connector.layout.RepositoryLayoutProvider;
@@ -206,7 +206,7 @@ public final class DefaultServiceLocator
         addService( UpdateCheckManager.class, DefaultUpdateCheckManager.class );
         addService( UpdatePolicyAnalyzer.class, DefaultUpdatePolicyAnalyzer.class );
         addService( FileProcessor.class, DefaultFileProcessor.class );
-        addService( SyncContextFactory.class, NamedSyncContextFactory.class );
+        addService( SyncContextFactory.class, DefaultSyncContextFactory.class );
         addService( RepositoryEventDispatcher.class, DefaultRepositoryEventDispatcher.class );
         addService( OfflineController.class, DefaultOfflineController.class );
         addService( LocalRepositoryProvider.class, DefaultLocalRepositoryProvider.class );

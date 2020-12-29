@@ -23,7 +23,7 @@ import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
 import org.junit.BeforeClass;
 
 public class LocalReadWriteLockAdapterTest
-    extends SyncContextFactoryAdapterTestSupport
+    extends NamedLockFactoryAdapterTestSupport
 {
     @BeforeClass
     public static void createNamedLockFactory() {

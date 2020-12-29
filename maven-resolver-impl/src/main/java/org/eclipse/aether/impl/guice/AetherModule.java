@@ -41,12 +41,14 @@ import org.eclipse.aether.impl.OfflineController;
 import org.eclipse.aether.impl.RemoteRepositoryManager;
 import org.eclipse.aether.impl.RepositoryConnectorProvider;
 import org.eclipse.aether.impl.RepositoryEventDispatcher;
+import org.eclipse.aether.internal.impl.synccontext.DefaultSyncContextFactory;
+import org.eclipse.aether.internal.impl.synccontext.GlobalSyncContextFactory;
 import org.eclipse.aether.internal.impl.synccontext.NamedSyncContextFactory;
+import org.eclipse.aether.internal.impl.synccontext.NoLockSyncContextFactory;
+import org.eclipse.aether.internal.impl.synccontext.SyncContextFactoryDelegate;
 import org.eclipse.aether.named.NamedLockFactory;
-import org.eclipse.aether.named.providers.GlobalReadWriteLockProvider;
 import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
 import org.eclipse.aether.named.providers.LocalSemaphoreProvider;
-import org.eclipse.aether.named.providers.NoLockProvider;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 import org.eclipse.aether.impl.UpdateCheckManager;
 import org.eclipse.aether.impl.UpdatePolicyAnalyzer;
@@ -142,7 +144,7 @@ public class AetherModule
         bind( FileProcessor.class ) //
         .to( DefaultFileProcessor.class ).in( Singleton.class );
         bind( SyncContextFactory.class ) //
-        .to( NamedSyncContextFactory.class ).in( Singleton.class );
+        .to( DefaultSyncContextFactory.class ).in( Singleton.class );
         bind( RepositoryEventDispatcher.class ) //
         .to( DefaultRepositoryEventDispatcher.class ).in( Singleton.class );
         bind( OfflineController.class ) //
@@ -154,10 +156,13 @@ public class AetherModule
         bind( LocalRepositoryManagerFactory.class ).annotatedWith( Names.named( "enhanced" ) ) //
         .to( EnhancedLocalRepositoryManagerFactory.class ).in( Singleton.class );
 
-        bind( NamedLockFactory.class ).annotatedWith( Names.named( NoLockProvider.NAME ) )
-                .toProvider( NoLockProvider.class ).in( Singleton.class );
-        bind( NamedLockFactory.class ).annotatedWith( Names.named( GlobalReadWriteLockProvider.NAME ) )
-                .toProvider( GlobalReadWriteLockProvider.class ).in( Singleton.class );
+        bind( SyncContextFactoryDelegate.class ).annotatedWith( Names.named( NoLockSyncContextFactory.NAME ) )
+                .to( NoLockSyncContextFactory.class ).in( Singleton.class );
+        bind( SyncContextFactoryDelegate.class ).annotatedWith( Names.named( GlobalSyncContextFactory.NAME ) )
+                .to( GlobalSyncContextFactory.class ).in( Singleton.class );
+        bind( SyncContextFactoryDelegate.class ).annotatedWith( Names.named( NamedSyncContextFactory.NAME ) )
+                .to( NamedSyncContextFactory.class ).in( Singleton.class );
+
         bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalReadWriteLockProvider.NAME ) )
                 .toProvider( LocalReadWriteLockProvider.class ).in( Singleton.class );
         bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalSemaphoreProvider.NAME ) )
@@ -169,15 +174,25 @@ public class AetherModule
 
     @Provides
     @Singleton
+    Map<String, SyncContextFactoryDelegate> provideSyncContextFactoryDelegates(
+            @Named( NoLockSyncContextFactory.NAME ) SyncContextFactoryDelegate nolock,
+            @Named( GlobalSyncContextFactory.NAME ) SyncContextFactoryDelegate global,
+            @Named( NamedSyncContextFactory.NAME ) SyncContextFactoryDelegate named )
+    {
+        Map<String, SyncContextFactoryDelegate> factories = new HashMap<>( 3 );
+        factories.put( NoLockSyncContextFactory.NAME, nolock );
+        factories.put( GlobalSyncContextFactory.NAME, global );
+        factories.put( NamedSyncContextFactory.NAME, named );
+        return Collections.unmodifiableMap( factories );
+    }
+
+    @Provides
+    @Singleton
     Map<String, Provider<NamedLockFactory>> provideNamedLockFactories(
-            @Named( NoLockProvider.NAME ) Provider<NamedLockFactory> nolock,
-            @Named( GlobalReadWriteLockProvider.NAME ) Provider<NamedLockFactory> global,
             @Named( LocalReadWriteLockProvider.NAME ) Provider<NamedLockFactory> localRwLock,
             @Named( LocalSemaphoreProvider.NAME ) Provider<NamedLockFactory> localSemaphore )
     {
         Map<String, Provider<NamedLockFactory>> factories = new HashMap<>();
-        factories.put( NoLockProvider.NAME, nolock );
-        factories.put( GlobalReadWriteLockProvider.NAME, global );
         factories.put( LocalReadWriteLockProvider.NAME, localRwLock );
         factories.put( LocalSemaphoreProvider.NAME, localSemaphore );
         return Collections.unmodifiableMap( factories );

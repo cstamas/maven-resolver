@@ -19,7 +19,6 @@ package org.eclipse.aether.named;
  * under the License.
  */
 
-import org.eclipse.aether.named.providers.GlobalReadWriteLockProvider;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * UT support for {@link NamedLockFactory}.
@@ -46,9 +44,6 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test
     public void refCounting() {
-        // refCounting test should not happen against global lock provider, as it uses one singleton lock instance
-        assumeTrue(!(namedLockFactory instanceof GlobalReadWriteLockProvider.GlobalNamedLockFactory));
-
         final String name = testName.getMethodName();
         try (NamedLock one = namedLockFactory.getLock(name);
              NamedLock two = namedLockFactory.getLock(name)) {

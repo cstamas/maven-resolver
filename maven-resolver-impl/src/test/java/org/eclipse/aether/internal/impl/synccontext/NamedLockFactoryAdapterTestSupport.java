@@ -1,4 +1,4 @@
-package org.eclipse.aether.named;
+package org.eclipse.aether.internal.impl.synccontext;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ package org.eclipse.aether.named;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.internal.impl.synccontext.SyncContextFactoryAdapter;
+import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 import org.junit.AfterClass;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 /**
  * UT support for {@link SyncContextFactory}.
  */
-public abstract class SyncContextFactoryAdapterTestSupport
+public abstract class NamedLockFactoryAdapterTestSupport
 {
   private static final long ADAPTER_TIME = 100L;
 
@@ -53,12 +53,12 @@ public abstract class SyncContextFactoryAdapterTestSupport
    * Subclass should populate this field, using {@link #setNamedLockFactory(NamedLockFactory)}, but subclass
    * must take care of proper cleanup as well, if needed!
    */
-  private static SyncContextFactoryAdapter adapter;
+  private static NamedLockFactoryAdapter adapter;
 
   private RepositorySystemSession session;
 
   protected static void setNamedLockFactory(final NamedLockFactory namedLockFactory) {
-    adapter = new SyncContextFactoryAdapter(
+    adapter = new NamedLockFactoryAdapter(
             namedLockFactory, ADAPTER_TIME, ADAPTER_TIME_UNIT
     );
   }
@@ -199,14 +199,14 @@ public abstract class SyncContextFactoryAdapterTestSupport
     final boolean shared;
     final CountDownLatch winner;
     final CountDownLatch loser;
-    final SyncContextFactoryAdapter adapter;
+    final NamedLockFactoryAdapter adapter;
     final RepositorySystemSession session;
     final Access chained;
 
     public Access(boolean shared,
                   CountDownLatch winner,
                   CountDownLatch loser,
-                  SyncContextFactoryAdapter adapter,
+                  NamedLockFactoryAdapter adapter,
                   RepositorySystemSession session,
                   Access chained) {
       this.shared = shared;

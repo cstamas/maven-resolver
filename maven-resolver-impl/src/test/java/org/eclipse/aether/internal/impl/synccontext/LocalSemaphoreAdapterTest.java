@@ -23,7 +23,7 @@ import org.eclipse.aether.named.providers.LocalSemaphoreProvider;
 import org.junit.BeforeClass;
 
 public class LocalSemaphoreAdapterTest
-    extends SyncContextFactoryAdapterTestSupport
+    extends NamedLockFactoryAdapterTestSupport
 {
     @BeforeClass
     public static void createNamedLockFactory() {

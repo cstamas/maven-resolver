@@ -19,11 +19,11 @@ package org.eclipse.aether.named.hazelcast;
  * under the License.
  */
 
-import org.eclipse.aether.named.SyncContextFactoryAdapterTestSupport;
+import org.eclipse.aether.named.NamedLockFactoryAdapterTestSupport;
 import org.junit.BeforeClass;
 
 public class HazelcastCPSemaphoreAdapterIT
-    extends SyncContextFactoryAdapterTestSupport {
+    extends NamedLockFactoryAdapterTestSupport {
 
     @BeforeClass
     public static void createNamedLockFactory() {

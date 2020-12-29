@@ -19,14 +19,11 @@ package org.eclipse.aether.internal.impl.synccontext;
  * under the License.
  */
 
-import org.eclipse.aether.named.providers.GlobalReadWriteLockProvider;
-import org.junit.BeforeClass;
+import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 
-public class GlobalReadWriteLockAdapterTest
-    extends SyncContextFactoryAdapterTestSupport
+/**
+ * Internal marker interface to mark internal implementations for {@link SyncContextFactory}.
+ */
+public interface SyncContextFactoryDelegate extends SyncContextFactory
 {
-    @BeforeClass
-    public static void createNamedLockFactory() {
-        setNamedLockFactory(new GlobalReadWriteLockProvider().get());
-    }
 }

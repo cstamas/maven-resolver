@@ -23,7 +23,6 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
-import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
@@ -34,14 +33,16 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Named {@link SyncContextFactory} implementation that selects underlying {@link NamedLockFactory} implementation
- * at creation.
+ * Named {@link SyncContextFactoryDelegate} implementation that selects underlying {@link NamedLockFactory}
+ * implementation at creation.
  */
-@Named
 @Singleton
+@Named( NamedSyncContextFactory.NAME )
 public final class NamedSyncContextFactory
-        implements SyncContextFactory
+        implements SyncContextFactoryDelegate
 {
+    public static final String NAME = "named";
+
     private static final long TIME_OUT = Long.getLong(
             "aether.syncContext.named.timeOut", 30L
     );
@@ -50,7 +51,7 @@ public final class NamedSyncContextFactory
             "aether.syncContext.named.timeUnit", TimeUnit.SECONDS.name()
     ) );
 
-    private final SyncContextFactoryAdapter syncContextFactoryAdapter;
+    private final NamedLockFactoryAdapter namedLockFactoryAdapter;
 
     /**
      * Constructor used with DI, where factories are injected and selected based on key.
@@ -64,7 +65,7 @@ public final class NamedSyncContextFactory
         {
             throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + name );
         }
-        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter( provider.get(), TIME_OUT, TIME_UNIT );
+        this.namedLockFactoryAdapter = new NamedLockFactoryAdapter( provider.get(), TIME_OUT, TIME_UNIT );
     }
 
     /**
@@ -72,7 +73,7 @@ public final class NamedSyncContextFactory
      */
     public NamedSyncContextFactory()
     {
-        this.syncContextFactoryAdapter = new SyncContextFactoryAdapter(
+        this.namedLockFactoryAdapter = new NamedLockFactoryAdapter(
                 new LocalReadWriteLockProvider().get(), TIME_OUT, TIME_UNIT
         );
     }
@@ -80,12 +81,12 @@ public final class NamedSyncContextFactory
     @Override
     public SyncContext newInstance( final RepositorySystemSession session, final boolean shared )
     {
-        return syncContextFactoryAdapter.newInstance( session, shared );
+        return namedLockFactoryAdapter.newInstance( session, shared );
     }
 
     @PreDestroy
     public void shutdown()
     {
-        syncContextFactoryAdapter.shutdown();
+        namedLockFactoryAdapter.shutdown();
     }
 }
