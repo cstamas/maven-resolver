@@ -33,9 +33,6 @@ To choose which SyncContextFactory you want to use, the `aether.syncContext.impl
 to some value from those above. In case of wrong value, the factory constructor, hence, Maven itself will fail to
 initialize. The default value used if none is set by user is `named`.
 
-Warning: if you use `ServiceLocator` same (default) behaviour may be observed, but the NamedLockFactory instance is
-limited to default "JVM local" (MT) lock factory only.
-
 ${esc.hash}${esc.hash} Configuration options for "named" SyncContextFactory
 
 You can control and configure several aspects of Named Locks SyncContextFactory:
