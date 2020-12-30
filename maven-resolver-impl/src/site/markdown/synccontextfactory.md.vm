@@ -46,3 +46,12 @@ You can control and configure several aspects of Named Locks SyncContextFactory:
 - `aether.syncContext.named.factory` (optional, default is `rwlock-local`): the Named Lock factory to be used.
 - `aether.syncContext.named.discriminator` (optional): A discriminator uniquely identifying a host and local
   repository pair.
+
+For the `aether.syncContext.named.factory` property following values are allowed:
+
+- `rwlock-local` (default), usable for MT builds.
+- `semaphore-local`, usable for MT builds.
+- `semaphore-hazelcast`, distributed, usable with MT and MP builds, **extra setup needed**.
+- `semaphore-hazelcast-client`, distributed, usable with MT and MP builds, **extra setup needed**.
+- `rwlock-redisson`, distributed, usable with MT and MP builds, **extra setup needed**.
+- `semaphore-redisson`, distributed, usable with MT and MP builds, **extra setup needed**.
