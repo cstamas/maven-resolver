@@ -51,7 +51,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.maven.resolver</groupId>
-      <artifactId>maven-resolver-named</artifactId>
+      <artifactId>maven-resolver-named-locks</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.resolver</groupId>
