@@ -1,4 +1,4 @@
-${esc.hash} Named Sync Context for Maven Resolver
+${esc.hash} Named Locks using Hazelcast
 
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,11 +19,16 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-The Named Sync Context Factory is a distributed lock factory for Maven Resolver
-on top of JVM and Hazelcast to provide a fast, concurrent-safe access from one or multiple Maven instances to the
-same local Maven repository.
+This module implement Named Locks using Hazelcast. It provides two implementations, that are distributed and relies on
+Hazelcast 4.x semaphores.
 
-For further details about the factory read the [Javadoc](./apidocs/org/eclipse/aether/synccontext/NamedSyncContextFactory.html).
+Out of the box "hazelcast" (distributed) named lock implementations are following:
+
+- `semaphore-hazelcast` implemented in `org.eclipse.aether.named.hazelcast.HazelcastCPSemaphoreProvider` that uses
+  Hazelcast backed `com.hazelcast.cp.ISemaphore`. Full Hazelcast member is used here.
+- `semaphore-hazelcast-client` implemented in `org.eclipse.aether.named.hazelcast.HazelcastClientCPSemaphoreProvider`
+  that uses Hazelcast Client backed `com.hazelcast.cp.ISemaphore`. This implementation uses Hazelcast Client, so
+  connection to some existing Hazelcast cluster and it's existence is a requirement.
 
 ${esc.hash}${esc.hash} Open Issues/Notes
 
@@ -39,31 +44,8 @@ ${esc.hash}${esc.hash} Installation/Testing
 - Create the directory `${maven.home}/lib/ext/hazelcast/`.
 - Modify `${maven.home}/bin/m2.conf` by adding `load ${maven.home}/lib/ext/hazelcast/*.jar`
   right after the `${maven.conf}/logging` line.
-- Copy the following dependencies (depending on your need, only one is needed) from Maven Central to `${maven.home}/lib/ext/hazelcast/`:
+- Copy the following dependency from Maven Central to `${maven.home}/lib/ext/hazelcast/`:
       <pre class="source">
-      ├── <a href="https://repo.maven.apache.org/maven2/com/hazelcast/hazelcast/3.12.10/hazelcast-3.12.10.jar">hazelcast-3.12.10.jar</a>
-      <pre class="source">
-      ├── <a href="https://repo.maven.apache.org/maven2/com/hazelcast/hazelcast-client/3.12.10/hazelcast-client-3.12.10.jar">hazelcast-client-3.12.10.jar</a>
+      ├── <a href="https://repo.maven.apache.org/maven2/com/hazelcast/hazelcast/4.1.1/hazelcast-4.1.1.jar">hazelcast-4.1.1.jar</a>
 - Optionally configure Hazelcast instance with `${maven.conf}/hazelcast.xml` or `${maven.conf}/hazelcast-client.xml` (see Hazelcast doco for possibilities).
-- Now start a multithreaded Maven build on your project.
-
-${esc.hash}${esc.hash}${esc.hash} Debugging
-
-- Add/modify the following entries in `${maven.home}/conf/logging/simplelogger.properties`:
-      ```
-      org.slf4j.simpleLogger.showDateTime=true
-      org.slf4j.simpleLogger.showThreadName=true
-      org.slf4j.simpleLogger.showShortLogName=true
-      org.slf4j.simpleLogger.log.org.eclipse.aether.synccontext=trace
-      #org.slf4j.simpleLogger.log.com.hazelcast=debug
-      ```
-
-${esc.hash}${esc.hash} Configuration Options
-
-Option | Type | Description | Default Value
---- | --- | --- | --- | ---
-`aether.syncContext.redisson.discriminator` | String | A discriminator uniquely identifying a host and repository pair. If the generation of the default value fails, it will use `sha1('')`. | `sha1('${esc.dollar}{hostname:-localhost}:${maven.repo.local}')`
-
-${esc.hash}${esc.hash} Set Configuration from Apache Maven
-
-To set one of the configuration options from above just use system variables.
+- Now start a multithreaded Maven build on your project and make sure Named Locks SyncContextFactory is being used.

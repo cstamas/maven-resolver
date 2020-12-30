@@ -59,7 +59,7 @@ public final class NamedSyncContextFactory
     @Inject
     public NamedSyncContextFactory( final Map<String, Provider<NamedLockFactory>> factories )
     {
-        String name = System.getProperty( "synccontext.named.factory", LocalReadWriteLockProvider.NAME );
+        String name = System.getProperty( "aether.syncContext.named.factory", LocalReadWriteLockProvider.NAME );
         Provider<NamedLockFactory> provider = factories.get( name );
         if ( provider == null )
         {
