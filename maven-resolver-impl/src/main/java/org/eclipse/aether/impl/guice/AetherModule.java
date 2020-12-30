@@ -179,7 +179,7 @@ public class AetherModule
             @Named( GlobalSyncContextFactory.NAME ) SyncContextFactoryDelegate global,
             @Named( NamedSyncContextFactory.NAME ) SyncContextFactoryDelegate named )
     {
-        Map<String, SyncContextFactoryDelegate> factories = new HashMap<>( 3 );
+        Map<String, SyncContextFactoryDelegate> factories = new HashMap<>();
         factories.put( NoLockSyncContextFactory.NAME, nolock );
         factories.put( GlobalSyncContextFactory.NAME, global );
         factories.put( NamedSyncContextFactory.NAME, named );

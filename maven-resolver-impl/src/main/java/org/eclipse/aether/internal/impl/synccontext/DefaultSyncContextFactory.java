@@ -43,8 +43,6 @@ public final class DefaultSyncContextFactory
             "aether.syncContext.impl", NamedSyncContextFactory.NAME
     );
 
-    private final Map<String, SyncContextFactoryDelegate> delegates;
-
     private final SyncContextFactoryDelegate delegate;
 
     /**
@@ -53,8 +51,8 @@ public final class DefaultSyncContextFactory
     @Inject
     public DefaultSyncContextFactory( final Map<String, SyncContextFactoryDelegate> delegates )
     {
-        this.delegates = Objects.requireNonNull( delegates );
-        this.delegate = selectDelegate();
+        Objects.requireNonNull( delegates );
+        this.delegate = selectDelegate( delegates );
     }
 
     /**
@@ -66,11 +64,10 @@ public final class DefaultSyncContextFactory
         delegates.put( NoLockSyncContextFactory.NAME, new NoLockSyncContextFactory() );
         delegates.put( GlobalSyncContextFactory.NAME, new GlobalSyncContextFactory() );
         delegates.put( NamedSyncContextFactory.NAME, new NamedSyncContextFactory() );
-        this.delegates = delegates;
-        this.delegate = selectDelegate();
+        this.delegate = selectDelegate( delegates );
     }
 
-    private SyncContextFactoryDelegate selectDelegate()
+    private SyncContextFactoryDelegate selectDelegate( final Map<String, SyncContextFactoryDelegate> delegates )
     {
         SyncContextFactoryDelegate delegate = delegates.get( SYNC_CONTEXT_FACTORY_NAME );
         if ( delegate == null )

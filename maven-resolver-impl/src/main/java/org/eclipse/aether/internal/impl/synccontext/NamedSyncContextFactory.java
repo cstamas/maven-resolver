@@ -23,12 +23,14 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
+import org.eclipse.aether.named.providers.LocalSemaphoreProvider;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -42,6 +44,10 @@ public final class NamedSyncContextFactory
         implements SyncContextFactoryDelegate
 {
     public static final String NAME = "named";
+
+    private static final String FACTORY_NAME = System.getProperty(
+            "aether.syncContext.named.factory", LocalReadWriteLockProvider.NAME
+    );
 
     private static final long TIME_OUT = Long.getLong(
             "aether.syncContext.named.timeOut", 30L
@@ -59,13 +65,7 @@ public final class NamedSyncContextFactory
     @Inject
     public NamedSyncContextFactory( final Map<String, Provider<NamedLockFactory>> factories )
     {
-        String name = System.getProperty( "aether.syncContext.named.factory", LocalReadWriteLockProvider.NAME );
-        Provider<NamedLockFactory> provider = factories.get( name );
-        if ( provider == null )
-        {
-            throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + name );
-        }
-        this.namedLockFactoryAdapter = new NamedLockFactoryAdapter( provider.get(), TIME_OUT, TIME_UNIT );
+        this.namedLockFactoryAdapter = selectAndAdapt( factories );
     }
 
     /**
@@ -73,9 +73,20 @@ public final class NamedSyncContextFactory
      */
     public NamedSyncContextFactory()
     {
-        this.namedLockFactoryAdapter = new NamedLockFactoryAdapter(
-                new LocalReadWriteLockProvider().get(), TIME_OUT, TIME_UNIT
-        );
+        HashMap<String, Provider<NamedLockFactory>> providers = new HashMap<>();
+        providers.put( LocalReadWriteLockProvider.NAME, new LocalReadWriteLockProvider() );
+        providers.put( LocalSemaphoreProvider.NAME, new LocalSemaphoreProvider() );
+        this.namedLockFactoryAdapter = selectAndAdapt( providers );
+    }
+
+    private NamedLockFactoryAdapter selectAndAdapt( final Map<String, Provider<NamedLockFactory>> factories )
+    {
+        Provider<NamedLockFactory> provider = factories.get( FACTORY_NAME );
+        if ( provider == null )
+        {
+            throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + FACTORY_NAME );
+        }
+        return new NamedLockFactoryAdapter( provider.get(), TIME_OUT, TIME_UNIT );
     }
 
     @Override
