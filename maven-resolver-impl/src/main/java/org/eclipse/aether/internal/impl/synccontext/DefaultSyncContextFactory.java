@@ -40,7 +40,7 @@ public final class DefaultSyncContextFactory
         implements SyncContextFactory
 {
     private static final String SYNC_CONTEXT_FACTORY_NAME = System.getProperty(
-            "aether.syncContext.impl", NoLockSyncContextFactory.NAME
+            "aether.syncContext.impl", NamedSyncContextFactory.NAME
     );
 
     private final Map<String, SyncContextFactoryDelegate> delegates;
