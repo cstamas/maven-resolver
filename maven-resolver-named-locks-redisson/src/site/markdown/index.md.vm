@@ -20,11 +20,11 @@ under the License.
 -->
 
 This module implement Named Locks using Redisson. It provides two implementations, that are distributed and relies on
-Hazelcast 4.x semaphores.
+Redisson distributed objects feature.
 
-Out of the box "hazelcast" (distributed) named lock implementations are following:
+Out of the box "redisson" (distributed) named lock implementations are following:
 
-- `rwlock-redisson` implemented in `oorg.eclipse.aether.named.redisson.RedissonReadWriteLockNamedLockFactoryProvider`
+- `rwlock-redisson` implemented in `org.eclipse.aether.named.redisson.RedissonReadWriteLockNamedLockFactoryProvider`
   that uses Redisson backed `org.redisson.api.RReadWriteLock`.
 - `semaphore-redisson` implemented in `org.eclipse.aether.named.redisson.RedissonSemaphoreNamedLockFactoryProvider`
   that uses Redisson backed `org.redisson.api.RSemaphore`.
