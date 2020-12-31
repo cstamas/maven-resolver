@@ -84,7 +84,8 @@ public final class NamedSyncContextFactory
         Provider<NamedLockFactory> provider = factories.get( FACTORY_NAME );
         if ( provider == null )
         {
-            throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + FACTORY_NAME );
+            throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + FACTORY_NAME
+                    + ", known ones: " + factories.keySet() );
         }
         return new NamedLockFactoryAdapter( provider.get(), TIME_OUT, TIME_UNIT );
     }
