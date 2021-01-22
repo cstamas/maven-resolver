@@ -49,7 +49,7 @@ public class StaticNameMapper
   @Inject
   public StaticNameMapper()
   {
-    this( "global" );
+    this( NAME );
   }
 
   /**
