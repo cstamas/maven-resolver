@@ -19,12 +19,12 @@ package org.eclipse.aether.named.redisson;
  * under the License.
  */
 
+import org.eclipse.aether.named.support.AdaptedReadWriteLockNamedLock;
 import org.eclipse.aether.named.support.NamedLockSupport;
-import org.eclipse.aether.named.support.ReadWriteLockNamedLock;
 import org.redisson.api.RReadWriteLock;
 
 /**
- * Factory of {@link ReadWriteLockNamedLock} instances using Redisson {@link RReadWriteLock}.
+ * Factory of {@link AdaptedReadWriteLockNamedLock} instances using Redisson {@link RReadWriteLock}.
  */
 public class RedissonReadWriteLockNamedLockFactory
     extends RedissonNamedLockFactorySupport
@@ -32,6 +32,10 @@ public class RedissonReadWriteLockNamedLockFactory
   @Override
   protected NamedLockSupport createLock( final String name )
   {
-    return new ReadWriteLockNamedLock( name, this, redissonClient.getReadWriteLock( name ) );
+    return new AdaptedReadWriteLockNamedLock(
+        name,
+        this,
+        new AdaptedReadWriteLockNamedLock.JVMReadWriteLock( redissonClient.getReadWriteLock( name ) )
+    );
   }
 }

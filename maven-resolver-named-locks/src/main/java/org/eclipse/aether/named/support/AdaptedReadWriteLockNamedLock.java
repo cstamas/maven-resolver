@@ -21,15 +21,88 @@ package org.eclipse.aether.named.support;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * Named lock support implementation that is using {@link ReadWriteLock} instances.
  */
-public class ReadWriteLockNamedLock
+public class AdaptedReadWriteLockNamedLock
         extends NamedLockSupport
 {
+    /**
+     * Wrapper for read-write-lock-like stuff, that do not share common ancestor.
+     */
+    public interface AdaptedReadWriteLock
+    {
+        AdaptedLock readLock();
+
+        AdaptedLock writeLock();
+    }
+
+    /**
+     * Wrapper for lock-like stuff, that do not share common ancestor.
+     */
+    public interface AdaptedLock
+    {
+        boolean tryLock( long time, TimeUnit unit ) throws InterruptedException;
+
+        void unlock();
+    }
+
+    /**
+     * Adapter for read-write-locks descending from Java {@link ReadWriteLock}.
+     */
+    public static final class JVMReadWriteLock implements AdaptedReadWriteLock
+    {
+        private final JVMLock readLock;
+
+        private final JVMLock writeLock;
+
+        public JVMReadWriteLock( final ReadWriteLock readWriteLock )
+        {
+            Objects.requireNonNull( readWriteLock );
+            this.readLock = new JVMLock( readWriteLock.readLock() );
+            this.writeLock = new JVMLock( readWriteLock.writeLock() );
+        }
+
+        @Override
+        public AdaptedLock readLock()
+        {
+            return readLock;
+        }
+
+        @Override
+        public AdaptedLock writeLock()
+        {
+            return writeLock;
+        }
+    }
+
+    private static final class JVMLock implements AdaptedLock
+    {
+        private final Lock lock;
+
+        private JVMLock( final Lock lock )
+        {
+            this.lock = lock;
+        }
+
+        @Override
+        public boolean tryLock( final long time, final TimeUnit unit ) throws InterruptedException
+        {
+            return lock.tryLock( time, unit );
+        }
+
+        @Override
+        public void unlock()
+        {
+            lock.unlock();
+        }
+    }
+
     private enum Step
     {
         SHARED, EXCLUSIVE, NOOP
@@ -37,11 +110,11 @@ public class ReadWriteLockNamedLock
 
     private final ThreadLocal<Deque<Step>> threadSteps;
 
-    private final ReadWriteLock readWriteLock;
+    private final AdaptedReadWriteLock readWriteLock;
 
-    public ReadWriteLockNamedLock( final String name,
-                                   final NamedLockFactorySupport factory,
-                                   final ReadWriteLock readWriteLock )
+    public AdaptedReadWriteLockNamedLock( final String name,
+                                          final NamedLockFactorySupport factory,
+                                          final AdaptedReadWriteLock readWriteLock )
     {
         super( name, factory );
         this.threadSteps = ThreadLocal.withInitial( ArrayDeque::new );
