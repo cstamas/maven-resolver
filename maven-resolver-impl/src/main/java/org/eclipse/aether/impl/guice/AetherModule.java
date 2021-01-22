@@ -46,6 +46,10 @@ import org.eclipse.aether.internal.impl.synccontext.GlobalSyncContextFactory;
 import org.eclipse.aether.internal.impl.synccontext.NamedSyncContextFactory;
 import org.eclipse.aether.internal.impl.synccontext.NoLockSyncContextFactory;
 import org.eclipse.aether.internal.impl.synccontext.SyncContextFactoryDelegate;
+import org.eclipse.aether.internal.impl.synccontext.named.GAVNameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.LGAVNameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.StaticNameMapper;
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
 import org.eclipse.aether.named.providers.LocalSemaphoreProvider;
@@ -163,6 +167,13 @@ public class AetherModule
         bind( SyncContextFactoryDelegate.class ).annotatedWith( Names.named( NamedSyncContextFactory.NAME ) )
                 .to( NamedSyncContextFactory.class ).in( Singleton.class );
 
+        bind( NameMapper.class ).annotatedWith( Names.named( StaticNameMapper.NAME ) )
+            .to( StaticNameMapper.class ).in( Singleton.class );
+        bind( NameMapper.class ).annotatedWith( Names.named( GAVNameMapper.NAME ) )
+            .to( GAVNameMapper.class ).in( Singleton.class );
+        bind( NameMapper.class ).annotatedWith( Names.named( LGAVNameMapper.NAME ) )
+            .to( LGAVNameMapper.class ).in( Singleton.class );
+
         bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalReadWriteLockProvider.NAME ) )
                 .toProvider( LocalReadWriteLockProvider.class ).in( Singleton.class );
         bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalSemaphoreProvider.NAME ) )
@@ -184,6 +195,20 @@ public class AetherModule
         factories.put( GlobalSyncContextFactory.NAME, global );
         factories.put( NamedSyncContextFactory.NAME, named );
         return Collections.unmodifiableMap( factories );
+    }
+
+    @Provides
+    @Singleton
+    Map<String, NameMapper> provideNameMappers(
+        @Named( StaticNameMapper.NAME ) NameMapper staticNameMapper,
+        @Named( GAVNameMapper.NAME ) NameMapper gavNameMapper,
+        @Named( LGAVNameMapper.NAME ) NameMapper lgavNameMapper )
+    {
+        Map<String, NameMapper> nameMappers = new HashMap<>();
+        nameMappers.put( StaticNameMapper.NAME, staticNameMapper );
+        nameMappers.put( GAVNameMapper.NAME, gavNameMapper );
+        nameMappers.put( LGAVNameMapper.NAME, lgavNameMapper );
+        return Collections.unmodifiableMap( nameMappers );
     }
 
     @Provides
