@@ -1,4 +1,4 @@
-package org.eclipse.aether.spi.locator;
+package org.eclipse.aether.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,22 +20,11 @@ package org.eclipse.aether.spi.locator;
  */
 
 /**
- * A stateless component of the repository system. The primary purpose of this interface is to provide a convenient
- * means to programmatically wire the several components of the repository system together when it is used outside of an
- * IoC container.
+ * This class is here for binary compatibility only.
  *
- * @deprecated Use some out-of-the-box DI implementation instead.
+ * @deprecated For backward compatibility reasons only, do not use this interface.
  */
 @Deprecated
-public interface Service
+public interface SyncContextFactory extends org.eclipse.aether.spi.synccontext.SyncContextFactory
 {
-
-    /**
-     * Provides the opportunity to initialize this service and to acquire other services for its operation from the
-     * locator. A service must not save the reference to the provided service locator.
-     * 
-     * @param locator The service locator, must not be {@code null}.
-     */
-    void initService( ServiceLocator locator );
-
 }
