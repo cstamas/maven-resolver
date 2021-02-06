@@ -1,4 +1,4 @@
-package org.eclipse.aether.named.redisson;
+package org.eclipse.aether.named.providers;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,43 +20,25 @@ package org.eclipse.aether.named.redisson;
  */
 
 import org.eclipse.aether.named.NamedLockFactory;
-import org.eclipse.aether.named.support.AdaptedReadWriteLockNamedLock;
+import org.eclipse.aether.named.support.FileLockNamedLockFactory;
 
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
 /**
- * Provider of {@link RedissonReadWriteLockNamedLockFactory} using Redisson and {@link org.redisson.api.RReadWriteLock}.
+ * Provider of {@link FileLockNamedLockFactory} using file locks.
  */
 @Singleton
-@Named( RedissonReadWriteLockNamedLockFactoryProvider.NAME )
-public class RedissonReadWriteLockNamedLockFactoryProvider
+@Named( FileLockProvider.NAME )
+public class FileLockProvider
     implements Provider<NamedLockFactory>
 {
-  public static final String NAME = "rwlock-redisson";
-
-  private static final String NAME_PREFIX = "maven:resolver:";
+  public static final String NAME = "file-lock";
 
   @Override
   public NamedLockFactory get()
   {
-    return new RedissonReadWriteLockNamedLockFactory();
-  }
-
-  private static class RedissonReadWriteLockNamedLockFactory
-          extends RedissonNamedLockFactorySupport<AdaptedReadWriteLockNamedLock>
-  {
-    @Override
-    protected AdaptedReadWriteLockNamedLock createLock( final String name )
-    {
-      return new AdaptedReadWriteLockNamedLock(
-              name,
-              this,
-              new AdaptedReadWriteLockNamedLock.JVMReadWriteLock(
-                      redissonClient.getReadWriteLock( NAME_PREFIX + name )
-              )
-      );
-    }
+    return new FileLockNamedLockFactory();
   }
 }

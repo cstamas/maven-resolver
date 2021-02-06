@@ -24,7 +24,6 @@ import com.hazelcast.cp.ISemaphore;
 import org.eclipse.aether.named.support.AdaptedSemaphoreNamedLock;
 import org.eclipse.aether.named.support.AdaptedSemaphoreNamedLock.AdaptedSemaphore;
 import org.eclipse.aether.named.support.NamedLockFactorySupport;
-import org.eclipse.aether.named.support.NamedLockSupport;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +34,7 @@ import java.util.function.BiFunction;
  * use {@link HazelcastInstance} backed by Hazelcast Server or Hazelcast Client.
  */
 public class HazelcastSemaphoreNamedLockFactory
-    extends NamedLockFactorySupport
+    extends NamedLockFactorySupport<AdaptedSemaphoreNamedLock>
 {
     private final HazelcastInstance hazelcastInstance;
 
@@ -62,7 +61,7 @@ public class HazelcastSemaphoreNamedLockFactory
     }
 
     @Override
-    protected NamedLockSupport createLock( final String name )
+    protected AdaptedSemaphoreNamedLock createLock( final String name )
     {
         ISemaphore semaphore = semaphores.computeIfAbsent(
                 name, k -> semaphoreFunction.apply( hazelcastInstance, k )
@@ -80,7 +79,7 @@ public class HazelcastSemaphoreNamedLockFactory
     }
 
     @Override
-    protected void destroyLock( final NamedLockSupport lock )
+    protected void destroyLock( final AdaptedSemaphoreNamedLock lock )
     {
         ISemaphore semaphore = semaphores.remove( lock.name() );
         if ( destroySemaphore )

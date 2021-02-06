@@ -28,13 +28,15 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Support class for {@link NamedLockFactory} implementations providing reference counting.
+ *
+ * @param <L> the actual implementation, subclass of {@link NamedLockSupport}.
  */
-public abstract class NamedLockFactorySupport
+public abstract class NamedLockFactorySupport<L extends NamedLockSupport>
     implements NamedLockFactory
 {
   protected final Logger log = LoggerFactory.getLogger( getClass() );
 
-  private final ConcurrentHashMap<String, NamedLockSupport> locks;
+  private final ConcurrentHashMap<String, L> locks;
 
   public NamedLockFactorySupport()
   {
@@ -61,7 +63,7 @@ public abstract class NamedLockFactorySupport
     // override if needed
   }
 
-  public boolean closeLock( final NamedLockSupport lock )
+  public boolean closeLock( final L lock )
   {
     AtomicBoolean destroyed = new AtomicBoolean( false );
     locks.compute( lock.name(), ( k, v ) ->
@@ -77,9 +79,9 @@ public abstract class NamedLockFactorySupport
     return destroyed.get();
   }
 
-  protected abstract NamedLockSupport createLock( final String name );
+  protected abstract L createLock( final String name );
 
-  protected void destroyLock( final NamedLockSupport lock )
+  protected void destroyLock( final L lock )
   {
     // override if needed
   }

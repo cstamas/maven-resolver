@@ -22,7 +22,6 @@ package org.eclipse.aether.named.providers;
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.named.support.AdaptedSemaphoreNamedLock;
 import org.eclipse.aether.named.support.NamedLockFactorySupport;
-import org.eclipse.aether.named.support.NamedLockSupport;
 
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -50,10 +49,10 @@ public class LocalSemaphoreProvider
    * A JVM-local named lock factory that uses named {@link Semaphore}s.
    */
   public static class LocalSemaphoreNamedLockFactory
-          extends NamedLockFactorySupport
+          extends NamedLockFactorySupport<AdaptedSemaphoreNamedLock>
   {
     @Override
-    protected NamedLockSupport createLock( final String name )
+    protected AdaptedSemaphoreNamedLock createLock( final String name )
     {
       return new AdaptedSemaphoreNamedLock( name, this, new JVMSemaphore() );
     }

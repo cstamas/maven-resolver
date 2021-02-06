@@ -21,7 +21,6 @@ package org.eclipse.aether.named.redisson;
 
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.named.support.AdaptedSemaphoreNamedLock;
-import org.eclipse.aether.named.support.NamedLockSupport;
 import org.redisson.api.RSemaphore;
 
 import javax.inject.Named;
@@ -48,10 +47,10 @@ public class RedissonSemaphoreNamedLockFactoryProvider
   }
 
   private static class RedissonSemaphoreNamedLockFactory
-          extends RedissonNamedLockFactorySupport
+          extends RedissonNamedLockFactorySupport<AdaptedSemaphoreNamedLock>
   {
     @Override
-    protected NamedLockSupport createLock( final String name )
+    protected AdaptedSemaphoreNamedLock createLock( final String name )
     {
       return new AdaptedSemaphoreNamedLock(
               name, this, new RedissonSemaphore( redissonClient.getSemaphore( NAME_PREFIX + name ) )
