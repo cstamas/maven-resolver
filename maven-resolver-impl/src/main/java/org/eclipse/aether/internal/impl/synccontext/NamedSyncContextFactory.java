@@ -86,7 +86,7 @@ public final class NamedSyncContextFactory
         HashMap<String, NameMapper> nameMappers = new HashMap<>();
         nameMappers.put( StaticNameMapper.NAME, new StaticNameMapper() );
         nameMappers.put( GAVNameMapper.NAME, new GAVNameMapper() );
-        nameMappers.put( LGAVNameMapper.NAME, new LGAVNameMapper() );
+        nameMappers.put( LGAVNameMapper.NAME, new LGAVNameMapper( new GAVNameMapper() ) );
         HashMap<String, Provider<NamedLockFactory>> providers = new HashMap<>();
         providers.put( LocalReadWriteLockProvider.NAME, new LocalReadWriteLockProvider() );
         providers.put( LocalSemaphoreProvider.NAME, new LocalSemaphoreProvider() );

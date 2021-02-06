@@ -58,7 +58,7 @@ public class StaticNameMapper
   public StaticNameMapper( final String globalName )
   {
     Objects.requireNonNull( globalName );
-    this.lockNames = Collections.singletonList( NAME_PREFIX + globalName );
+    this.lockNames = Collections.singletonList( globalName );
   }
 
   @Override

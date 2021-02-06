@@ -37,12 +37,15 @@ public class HazelcastClientCPSemaphoreProvider
     implements Provider<NamedLockFactory>
 {
   public static final String NAME = "semaphore-hazelcast-client";
+
+  private static final String NAME_PREFIX = "maven:resolver:";
+
   @Override
   public NamedLockFactory get()
   {
     return new HazelcastSemaphoreNamedLockFactory(
         HazelcastClient.newHazelcastClient(),
-        ( hazelcastInstance, name ) -> hazelcastInstance.getCPSubsystem().getSemaphore( name ),
+        ( hazelcastInstance, name ) -> hazelcastInstance.getCPSubsystem().getSemaphore( NAME_PREFIX + name ),
         false,
         true
     );

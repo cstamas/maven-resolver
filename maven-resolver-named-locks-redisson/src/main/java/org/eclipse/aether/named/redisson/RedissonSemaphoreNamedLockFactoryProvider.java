@@ -20,10 +20,14 @@ package org.eclipse.aether.named.redisson;
  */
 
 import org.eclipse.aether.named.NamedLockFactory;
+import org.eclipse.aether.named.support.AdaptedSemaphoreNamedLock;
+import org.eclipse.aether.named.support.NamedLockSupport;
+import org.redisson.api.RSemaphore;
 
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Provider of {@link RedissonSemaphoreNamedLockFactory} using Redisson and {@link org.redisson.api.RSemaphore}.
@@ -35,9 +39,46 @@ public class RedissonSemaphoreNamedLockFactoryProvider
 {
   public static final String NAME = "semaphore-redisson";
 
+  private static final String NAME_PREFIX = "maven:resolver:";
+
   @Override
   public NamedLockFactory get()
   {
     return new RedissonSemaphoreNamedLockFactory();
+  }
+
+  private static class RedissonSemaphoreNamedLockFactory
+          extends RedissonNamedLockFactorySupport
+  {
+    @Override
+    protected NamedLockSupport createLock( final String name )
+    {
+      return new AdaptedSemaphoreNamedLock(
+              name, this, new RedissonSemaphore( redissonClient.getSemaphore( NAME_PREFIX + name ) )
+      );
+    }
+
+    private static final class RedissonSemaphore implements AdaptedSemaphoreNamedLock.AdaptedSemaphore
+    {
+      private final RSemaphore semaphore;
+
+      private RedissonSemaphore( final RSemaphore semaphore )
+      {
+        semaphore.addPermits( Integer.MAX_VALUE );
+        this.semaphore = semaphore;
+      }
+
+      @Override
+      public boolean tryAcquire( final int perms, final long time, final TimeUnit unit ) throws InterruptedException
+      {
+        return semaphore.tryAcquire( perms, time, unit );
+      }
+
+      @Override
+      public void release( final int perms )
+      {
+        semaphore.release( perms );
+      }
+    }
   }
 }

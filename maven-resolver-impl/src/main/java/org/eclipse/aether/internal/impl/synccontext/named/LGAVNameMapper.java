@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -39,15 +40,17 @@ import org.eclipse.aether.util.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.toList;
+
 /**
- * Discriminating {@link NameMapper}, that extends {@link GAVNameMapper} and adds "discriminator" that makes lock
- * names unique including local repository (localRepo + GAV). The discriminator may be passed in via
+ * Discriminating {@link NameMapper}, that wraps {@link GAVNameMapper} and adds "discriminator" as prefix,
+ * that makes lock names unique including local repository + GAV. The discriminator may be passed in via
  * {@link RepositorySystemSession} or is automatically calculated based on local repository path.
  */
 @Singleton
 @Named( LGAVNameMapper.NAME )
 public class LGAVNameMapper
-    extends GAVNameMapper
+    implements NameMapper
 {
   public static final String NAME = "lgav";
 
@@ -62,11 +65,14 @@ public class LGAVNameMapper
 
   private final Logger log = LoggerFactory.getLogger( getClass() );
 
+  private final GAVNameMapper gavNameMapper;
+
   private final String hostname;
 
   @Inject
-  public LGAVNameMapper()
+  public LGAVNameMapper( final GAVNameMapper gavNameMapper )
   {
+    this.gavNameMapper = Objects.requireNonNull( gavNameMapper );
     this.hostname = getHostname();
   }
 
@@ -75,7 +81,10 @@ public class LGAVNameMapper
                                        final Collection<? extends Artifact> artifacts,
                                        final Collection<? extends Metadata> metadatas )
   {
-    return toGAVNames( NAME_PREFIX + createDiscriminator( session ) + ":", artifacts, metadatas );
+    String discriminator = createDiscriminator( session );
+    return gavNameMapper.nameLocks( session, artifacts, metadatas ).stream()
+            .map( s -> discriminator + ":" + s )
+            .collect( toList() );
   }
 
   private String getHostname()

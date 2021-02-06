@@ -20,7 +20,6 @@ package org.eclipse.aether.internal.impl.synccontext.named;
  */
 
 import java.util.Collection;
-import java.util.Objects;
 import java.util.TreeSet;
 
 import javax.inject.Named;
@@ -42,18 +41,16 @@ public class GAVNameMapper
   public static final String NAME = "gav";
 
   @Override
-  public Collection<String> nameLocks( final RepositorySystemSession session,
-                                       final Collection<? extends Artifact> artifacts,
-                                       final Collection<? extends Metadata> metadatas )
+  public TreeSet<String> nameLocks( final RepositorySystemSession session,
+                                    final Collection<? extends Artifact> artifacts,
+                                    final Collection<? extends Metadata> metadatas )
   {
-    return toGAVNames( NAME_PREFIX, artifacts, metadatas );
+    return toGAVNames( artifacts, metadatas );
   }
 
-  protected TreeSet<String> toGAVNames( final String prefix,
-                                        final Collection<? extends Artifact> artifacts,
+  protected TreeSet<String> toGAVNames( final Collection<? extends Artifact> artifacts,
                                         final Collection<? extends Metadata> metadatas )
   {
-    Objects.requireNonNull( prefix );
     // Deadlock prevention: https://stackoverflow.com/a/16780988/696632
     // We must acquire multiple locks always in the same order!
     TreeSet<String> keys = new TreeSet<>();
@@ -63,7 +60,7 @@ public class GAVNameMapper
       {
         String key = "artifact:" + artifact.getGroupId() + ":"
             + artifact.getArtifactId() + ":" + artifact.getBaseVersion();
-        keys.add( prefix + key );
+        keys.add( key );
       }
     }
 
@@ -84,7 +81,7 @@ public class GAVNameMapper
             }
           }
         }
-        keys.add( prefix + key.toString() );
+        keys.add( key.toString() );
       }
     }
     return keys;

@@ -31,13 +31,9 @@ import org.eclipse.aether.metadata.Metadata;
 public interface NameMapper
 {
   /**
-   * The name prefix recommended to be used.
-   */
-  String NAME_PREFIX = "maven:resolver:";
-
-  /**
-   * Creates names for passed in artifacts and metadata. Returned collection has max size of sum of the passed in
-   * artifacts and metadata collections, or less. Never returns {@code null}.
+   * Creates (opaque) names for passed in artifacts and metadata. Returned collection has max size of sum of the passed
+   * in artifacts and metadata collections, or less. If empty collection returned, there will be no locking happening.
+   * Never returns {@code null}.
    */
   Collection<String> nameLocks( RepositorySystemSession session,
                                 Collection<? extends Artifact> artifacts,
