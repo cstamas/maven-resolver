@@ -70,8 +70,9 @@ Extra values for factory (these need extra setup and will work with SISU DI only
 Other configuration keys:
 
 - `aether.syncContext.named.static.name`, the value to use as static lock name, if `static` name mapper is used.
+  If not set, defaults to "static".
 - `aether.syncContext.named.discriminating.discriminator`, the value to use as discriminator. If not set,
-  sha1(hostname + local repo) is used as discriminator.
-- `aether.syncContext.named.discriminating.hostname`, the hostname to be used to create discriminator value 
-  (if above value not set).
+  sha1(hostname + local repo) is calculated as hex string representation and is used as discriminator.
+- `aether.syncContext.named.discriminating.hostname`, the hostname to be used to calculate discriminator value,
+  if above value not set. If not set, the hostname is detected using Java API.
 
