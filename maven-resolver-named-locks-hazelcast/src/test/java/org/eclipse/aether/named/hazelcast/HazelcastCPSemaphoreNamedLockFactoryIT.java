@@ -19,11 +19,10 @@ package org.eclipse.aether.named.hazelcast;
  * under the License.
  */
 
-import org.eclipse.aether.named.NamedLockFactoryTestSupport;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-public class HazelcastCPSemaphoreProviderIT
+public class HazelcastCPSemaphoreNamedLockFactoryIT
     extends NamedLockFactoryTestSupport {
 
     @BeforeClass

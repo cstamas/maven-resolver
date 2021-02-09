@@ -1,4 +1,4 @@
-package org.eclipse.aether.named;
+package org.eclipse.aether.named.hazelcast;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,6 +19,8 @@ package org.eclipse.aether.named;
  * under the License.
  */
 
+import org.eclipse.aether.named.NamedLock;
+import org.eclipse.aether.named.NamedLockFactory;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

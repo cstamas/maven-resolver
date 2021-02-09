@@ -19,7 +19,6 @@ package org.eclipse.aether.named.hazelcast;
  * under the License.
  */
 
-import org.eclipse.aether.named.NamedLockFactoryAdapterTestSupport;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 

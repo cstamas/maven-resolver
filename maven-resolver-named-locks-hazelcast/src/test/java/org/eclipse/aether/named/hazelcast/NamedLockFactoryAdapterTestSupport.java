@@ -1,4 +1,4 @@
-package org.eclipse.aether.named;
+package org.eclipse.aether.named.hazelcast;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,6 +25,7 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.internal.impl.synccontext.named.DiscriminatingNameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.GAVNameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapter;
+import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 import org.junit.AfterClass;
