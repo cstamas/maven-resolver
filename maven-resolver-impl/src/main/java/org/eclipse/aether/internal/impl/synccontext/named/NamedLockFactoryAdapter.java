@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,7 +38,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class NamedLockFactoryAdapter
 {
-    private final NameMapper lockNaming;
+    private final NameMapper nameMapper;
 
     private final NamedLockFactory namedLockFactory;
 
@@ -45,20 +46,30 @@ public final class NamedLockFactoryAdapter
 
     private final TimeUnit timeUnit;
 
-    public NamedLockFactoryAdapter( final NameMapper lockNaming,
+    public NamedLockFactoryAdapter( final NameMapper nameMapper,
                                     final NamedLockFactory namedLockFactory,
                                     final long time,
                                     final TimeUnit timeUnit )
     {
-        this.lockNaming = lockNaming;
-        this.namedLockFactory = namedLockFactory;
+        this.nameMapper = Objects.requireNonNull( nameMapper );
+        this.namedLockFactory = Objects.requireNonNull( namedLockFactory );
+        if ( time < 0L )
+        {
+            throw new IllegalArgumentException( "time cannot be negative" );
+        }
         this.time = time;
-        this.timeUnit = timeUnit;
+        this.timeUnit = Objects.requireNonNull( timeUnit );
     }
 
     public SyncContext newInstance( final RepositorySystemSession session, final boolean shared )
     {
-        return new AdaptedLockSyncContext( session, lockNaming, namedLockFactory, time, timeUnit, shared );
+        return new AdaptedLockSyncContext(
+                session,
+                shared,
+                nameMapper,
+                namedLockFactory,
+                time,
+                timeUnit );
     }
 
     public void shutdown()
@@ -73,6 +84,8 @@ public final class NamedLockFactoryAdapter
 
         private final RepositorySystemSession session;
 
+        private final boolean shared;
+
         private final NameMapper lockNaming;
 
         private final SessionAwareNamedLockFactory sessionAwareNamedLockFactory;
@@ -83,18 +96,17 @@ public final class NamedLockFactoryAdapter
 
         private final TimeUnit timeUnit;
 
-        private final boolean shared;
-
         private final ArrayDeque<NamedLock> locks;
 
         private AdaptedLockSyncContext( final RepositorySystemSession session,
+                                        final boolean shared,
                                         final NameMapper lockNaming,
                                         final NamedLockFactory namedLockFactory,
                                         final long timeOut,
-                                        final TimeUnit timeUnit,
-                                        final boolean shared )
+                                        final TimeUnit timeUnit )
         {
             this.session = session;
+            this.shared = shared;
             this.lockNaming = lockNaming;
             this.sessionAwareNamedLockFactory = namedLockFactory instanceof SessionAwareNamedLockFactory
                     ? (SessionAwareNamedLockFactory) namedLockFactory
@@ -102,7 +114,6 @@ public final class NamedLockFactoryAdapter
             this.namedLockFactory = namedLockFactory;
             this.timeOut = timeOut;
             this.timeUnit = timeUnit;
-            this.shared = shared;
             this.locks = new ArrayDeque<>();
         }
 
