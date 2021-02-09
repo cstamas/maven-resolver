@@ -49,6 +49,8 @@ import org.eclipse.aether.internal.impl.synccontext.named.GAVNameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.DiscriminatingNameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.StaticNameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.takari.TakariNamedLockFactory;
+import org.eclipse.aether.internal.impl.synccontext.named.takari.TakariNameMapper;
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.named.providers.LocalReadWriteLockNamedLockFactory;
 import org.eclipse.aether.named.providers.LocalSemaphoreNamedLockFactory;
@@ -172,11 +174,15 @@ public class AetherModule
             .to( GAVNameMapper.class ).in( Singleton.class );
         bind( NameMapper.class ).annotatedWith( Names.named( DiscriminatingNameMapper.NAME ) )
             .to( DiscriminatingNameMapper.class ).in( Singleton.class );
+        bind( NameMapper.class ).annotatedWith( Names.named( TakariNameMapper.NAME ) )
+            .to( TakariNameMapper.class ).in( Singleton.class );
 
         bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalReadWriteLockNamedLockFactory.NAME ) )
                 .to( LocalReadWriteLockNamedLockFactory.class ).in( Singleton.class );
         bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalSemaphoreNamedLockFactory.NAME ) )
                 .to( LocalSemaphoreNamedLockFactory.class ).in( Singleton.class );
+        bind( NamedLockFactory.class ).annotatedWith( Names.named( TakariNamedLockFactory.NAME ) )
+            .to( TakariNamedLockFactory.class ).in( Singleton.class );
 
         install( new Slf4jModule() );
 
@@ -201,12 +207,14 @@ public class AetherModule
     Map<String, NameMapper> provideNameMappers(
         @Named( StaticNameMapper.NAME ) NameMapper staticNameMapper,
         @Named( GAVNameMapper.NAME ) NameMapper gavNameMapper,
-        @Named( DiscriminatingNameMapper.NAME ) NameMapper lgavNameMapper )
+        @Named( DiscriminatingNameMapper.NAME ) NameMapper lgavNameMapper,
+        @Named( TakariNameMapper.NAME ) NameMapper takariNameMapper )
     {
         Map<String, NameMapper> nameMappers = new HashMap<>();
         nameMappers.put( StaticNameMapper.NAME, staticNameMapper );
         nameMappers.put( GAVNameMapper.NAME, gavNameMapper );
         nameMappers.put( DiscriminatingNameMapper.NAME, lgavNameMapper );
+        nameMappers.put( TakariNameMapper.NAME, takariNameMapper );
         return Collections.unmodifiableMap( nameMappers );
     }
 
@@ -214,11 +222,13 @@ public class AetherModule
     @Singleton
     Map<String, NamedLockFactory> provideNamedLockFactories(
             @Named( LocalReadWriteLockNamedLockFactory.NAME ) NamedLockFactory localRwLock,
-            @Named( LocalSemaphoreNamedLockFactory.NAME ) NamedLockFactory localSemaphore )
+            @Named( LocalSemaphoreNamedLockFactory.NAME ) NamedLockFactory localSemaphore,
+            @Named( TakariNamedLockFactory.NAME ) NamedLockFactory takariLockFactory )
     {
         Map<String, NamedLockFactory> factories = new HashMap<>();
         factories.put( LocalReadWriteLockNamedLockFactory.NAME, localRwLock );
         factories.put( LocalSemaphoreNamedLockFactory.NAME, localSemaphore );
+        factories.put( TakariNamedLockFactory.NAME, takariLockFactory );
         return Collections.unmodifiableMap( factories );
     }
 

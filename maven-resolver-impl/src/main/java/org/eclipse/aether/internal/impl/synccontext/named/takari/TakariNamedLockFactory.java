@@ -38,8 +38,8 @@ import java.io.UncheckedIOException;
  * @see <a href="https://github.com/takari/takari-local-repository/blob/master/src/main/java/io/takari/filemanager/internal/DefaultFileManager.java">Takari DefaultFileManager.java</a>
  */
 @Singleton
-@Named( TakariLockFactory.NAME )
-public class TakariLockFactory
+@Named( TakariNamedLockFactory.NAME )
+public class TakariNamedLockFactory
         extends FileLockNamedLockFactory
         implements SessionAwareNamedLockFactory
 {
