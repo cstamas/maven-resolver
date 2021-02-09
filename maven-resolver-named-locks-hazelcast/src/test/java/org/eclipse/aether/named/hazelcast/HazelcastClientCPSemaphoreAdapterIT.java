@@ -31,7 +31,7 @@ public class HazelcastClientCPSemaphoreAdapterIT
     @BeforeClass
     public static void createNamedLockFactory() {
         utils = new HazelcastClientUtils().createCpCluster();
-        setNamedLockFactory(new HazelcastClientCPSemaphoreProvider().get());
+        setNamedLockFactory(new HazelcastClientCPSemaphoreNamedLockFactory());
     }
 
     @AfterClass

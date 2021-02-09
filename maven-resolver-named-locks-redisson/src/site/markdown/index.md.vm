@@ -24,9 +24,9 @@ Redisson distributed objects feature.
 
 Out of the box "redisson" (distributed) named lock implementations are following:
 
-- `rwlock-redisson` implemented in `org.eclipse.aether.named.redisson.RedissonReadWriteLockNamedLockFactoryProvider`
+- `rwlock-redisson` implemented in `org.eclipse.aether.named.redisson.RedissonReadWriteLockNamedLockFactory`
   that uses Redisson backed `org.redisson.api.RReadWriteLock`.
-- `semaphore-redisson` implemented in `org.eclipse.aether.named.redisson.RedissonSemaphoreNamedLockFactoryProvider`
+- `semaphore-redisson` implemented in `org.eclipse.aether.named.redisson.RedissonSemaphoreNamedLockFactory`
   that uses Redisson backed `org.redisson.api.RSemaphore`.
 
 ${esc.hash}${esc.hash} Open Issues/Notes

@@ -19,32 +19,29 @@ package org.eclipse.aether.named.hazelcast;
  * under the License.
  */
 
-import com.hazelcast.client.HazelcastClient;
-import org.eclipse.aether.named.NamedLockFactory;
+import com.hazelcast.core.Hazelcast;
 
+import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 /**
- * Provider of {@link HazelcastSemaphoreNamedLockFactory} using Hazelcast Client and {@link
+ * {@link HazelcastSemaphoreNamedLockFactory} using Hazelcast and {@link
  * com.hazelcast.core.HazelcastInstance#getCPSubsystem()} method to get CP semaphore. For this to work, the Hazelcast
  * cluster the client is connecting to must be CP enabled cluster.
  */
 @Singleton
-@Named( HazelcastClientCPSemaphoreProvider.NAME )
-public class HazelcastClientCPSemaphoreProvider
-    implements Provider<NamedLockFactory>
+@Named( HazelcastCPSemaphoreNamedLockFactory.NAME )
+public class HazelcastCPSemaphoreNamedLockFactory
+    extends HazelcastSemaphoreNamedLockFactory
 {
-  public static final String NAME = "semaphore-hazelcast-client";
+  public static final String NAME = "semaphore-hazelcast";
 
-  private static final String NAME_PREFIX = "maven:resolver:";
-
-  @Override
-  public NamedLockFactory get()
+  @Inject
+  public HazelcastCPSemaphoreNamedLockFactory()
   {
-    return new HazelcastSemaphoreNamedLockFactory(
-        HazelcastClient.newHazelcastClient(),
+    super(
+        Hazelcast.newHazelcastInstance(),
         ( hazelcastInstance, name ) -> hazelcastInstance.getCPSubsystem().getSemaphore( NAME_PREFIX + name ),
         false,
         true

@@ -19,14 +19,14 @@ package org.eclipse.aether.named;
  * under the License.
  */
 
-import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
+import org.eclipse.aether.named.providers.LocalSemaphoreNamedLockFactory;
 import org.junit.BeforeClass;
 
-public class LocalReadWriteLockProviderTest
+public class LocalSemaphoreNamedLockFactoryTest
     extends NamedLockFactoryTestSupport {
 
     @BeforeClass
     public static void createNamedLockFactory() {
-        namedLockFactory = new LocalReadWriteLockProvider().get();
+        namedLockFactory = new LocalSemaphoreNamedLockFactory();
     }
 }

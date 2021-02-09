@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.eclipse.aether.RepositoryListener;
@@ -51,8 +50,8 @@ import org.eclipse.aether.internal.impl.synccontext.named.DiscriminatingNameMapp
 import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.StaticNameMapper;
 import org.eclipse.aether.named.NamedLockFactory;
-import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
-import org.eclipse.aether.named.providers.LocalSemaphoreProvider;
+import org.eclipse.aether.named.providers.LocalReadWriteLockNamedLockFactory;
+import org.eclipse.aether.named.providers.LocalSemaphoreNamedLockFactory;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 import org.eclipse.aether.impl.UpdateCheckManager;
 import org.eclipse.aether.impl.UpdatePolicyAnalyzer;
@@ -174,10 +173,10 @@ public class AetherModule
         bind( NameMapper.class ).annotatedWith( Names.named( DiscriminatingNameMapper.NAME ) )
             .to( DiscriminatingNameMapper.class ).in( Singleton.class );
 
-        bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalReadWriteLockProvider.NAME ) )
-                .toProvider( LocalReadWriteLockProvider.class ).in( Singleton.class );
-        bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalSemaphoreProvider.NAME ) )
-                .toProvider( LocalSemaphoreProvider.class ).in( Singleton.class );
+        bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalReadWriteLockNamedLockFactory.NAME ) )
+                .to( LocalReadWriteLockNamedLockFactory.class ).in( Singleton.class );
+        bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalSemaphoreNamedLockFactory.NAME ) )
+                .to( LocalSemaphoreNamedLockFactory.class ).in( Singleton.class );
 
         install( new Slf4jModule() );
 
@@ -213,13 +212,13 @@ public class AetherModule
 
     @Provides
     @Singleton
-    Map<String, Provider<NamedLockFactory>> provideNamedLockFactories(
-            @Named( LocalReadWriteLockProvider.NAME ) Provider<NamedLockFactory> localRwLock,
-            @Named( LocalSemaphoreProvider.NAME ) Provider<NamedLockFactory> localSemaphore )
+    Map<String, NamedLockFactory> provideNamedLockFactories(
+            @Named( LocalReadWriteLockNamedLockFactory.NAME ) NamedLockFactory localRwLock,
+            @Named( LocalSemaphoreNamedLockFactory.NAME ) NamedLockFactory localSemaphore )
     {
-        Map<String, Provider<NamedLockFactory>> factories = new HashMap<>();
-        factories.put( LocalReadWriteLockProvider.NAME, localRwLock );
-        factories.put( LocalSemaphoreProvider.NAME, localSemaphore );
+        Map<String, NamedLockFactory> factories = new HashMap<>();
+        factories.put( LocalReadWriteLockNamedLockFactory.NAME, localRwLock );
+        factories.put( LocalSemaphoreNamedLockFactory.NAME, localSemaphore );
         return Collections.unmodifiableMap( factories );
     }
 

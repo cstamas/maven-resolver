@@ -36,6 +36,8 @@ import java.util.function.BiFunction;
 public class HazelcastSemaphoreNamedLockFactory
     extends NamedLockFactorySupport<AdaptedSemaphoreNamedLock>
 {
+    protected static final String NAME_PREFIX = "maven:resolver:";
+
     private final HazelcastInstance hazelcastInstance;
 
     private final BiFunction<HazelcastInstance, String, ISemaphore> semaphoreFunction;

@@ -27,13 +27,12 @@ import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapter;
 import org.eclipse.aether.internal.impl.synccontext.named.StaticNameMapper;
 import org.eclipse.aether.named.NamedLockFactory;
-import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
-import org.eclipse.aether.named.providers.LocalSemaphoreProvider;
+import org.eclipse.aether.named.providers.LocalReadWriteLockNamedLockFactory;
+import org.eclipse.aether.named.providers.LocalSemaphoreNamedLockFactory;
 
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +50,7 @@ public final class NamedSyncContextFactory
     public static final String NAME = "named";
 
     private static final String FACTORY_NAME = System.getProperty(
-            "aether.syncContext.named.factory", LocalReadWriteLockProvider.NAME
+            "aether.syncContext.named.factory", LocalReadWriteLockNamedLockFactory.NAME
     );
 
     private static final String NAME_MAPPING = System.getProperty(
@@ -73,7 +72,7 @@ public final class NamedSyncContextFactory
      */
     @Inject
     public NamedSyncContextFactory( final Map<String, NameMapper> nameMappers,
-                                    final Map<String, Provider<NamedLockFactory>> factories )
+                                    final Map<String, NamedLockFactory> factories )
     {
         this.namedLockFactoryAdapter = selectAndAdapt( nameMappers, factories );
     }
@@ -87,14 +86,14 @@ public final class NamedSyncContextFactory
         nameMappers.put( StaticNameMapper.NAME, new StaticNameMapper() );
         nameMappers.put( GAVNameMapper.NAME, new GAVNameMapper() );
         nameMappers.put( DiscriminatingNameMapper.NAME, new DiscriminatingNameMapper( new GAVNameMapper() ) );
-        HashMap<String, Provider<NamedLockFactory>> providers = new HashMap<>();
-        providers.put( LocalReadWriteLockProvider.NAME, new LocalReadWriteLockProvider() );
-        providers.put( LocalSemaphoreProvider.NAME, new LocalSemaphoreProvider() );
-        this.namedLockFactoryAdapter = selectAndAdapt( nameMappers, providers );
+        HashMap<String, NamedLockFactory> factories = new HashMap<>();
+        factories.put( LocalReadWriteLockNamedLockFactory.NAME, new LocalReadWriteLockNamedLockFactory() );
+        factories.put( LocalSemaphoreNamedLockFactory.NAME, new LocalSemaphoreNamedLockFactory() );
+        this.namedLockFactoryAdapter = selectAndAdapt( nameMappers, factories );
     }
 
     private NamedLockFactoryAdapter selectAndAdapt( final Map<String, NameMapper> nameMappers,
-                                                    final Map<String, Provider<NamedLockFactory>> factories )
+                                                    final Map<String, NamedLockFactory> factories )
     {
         NameMapper nameMapper = nameMappers.get( NAME_MAPPING );
         if ( nameMapper == null )
@@ -102,13 +101,13 @@ public final class NamedSyncContextFactory
             throw new IllegalArgumentException( "Unknown NameMapper name: " + NAME_MAPPING
                 + ", known ones: " + nameMappers.keySet() );
         }
-        Provider<NamedLockFactory> provider = factories.get( FACTORY_NAME );
-        if ( provider == null )
+        NamedLockFactory factory = factories.get( FACTORY_NAME );
+        if ( factory == null )
         {
             throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + FACTORY_NAME
                     + ", known ones: " + factories.keySet() );
         }
-        return new NamedLockFactoryAdapter( nameMapper, provider.get(), TIME_OUT, TIME_UNIT );
+        return new NamedLockFactoryAdapter( nameMapper, factory, TIME_OUT, TIME_UNIT );
     }
 
     @Override

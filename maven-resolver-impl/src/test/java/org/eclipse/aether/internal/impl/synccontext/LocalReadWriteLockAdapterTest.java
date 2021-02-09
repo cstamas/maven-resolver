@@ -19,7 +19,7 @@ package org.eclipse.aether.internal.impl.synccontext;
  * under the License.
  */
 
-import org.eclipse.aether.named.providers.LocalReadWriteLockProvider;
+import org.eclipse.aether.named.providers.LocalReadWriteLockNamedLockFactory;
 import org.junit.BeforeClass;
 
 public class LocalReadWriteLockAdapterTest
@@ -27,7 +27,7 @@ public class LocalReadWriteLockAdapterTest
 {
     @BeforeClass
     public static void createNamedLockFactory() {
-        namedLockFactory = new LocalReadWriteLockProvider().get();
+        namedLockFactory = new LocalReadWriteLockNamedLockFactory();
         createAdapter();
     }
 }

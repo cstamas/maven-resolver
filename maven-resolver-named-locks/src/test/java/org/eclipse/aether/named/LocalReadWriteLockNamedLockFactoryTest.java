@@ -1,4 +1,4 @@
-package org.eclipse.aether.named.providers;
+package org.eclipse.aether.named;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,26 +19,14 @@ package org.eclipse.aether.named.providers;
  * under the License.
  */
 
-import org.eclipse.aether.named.NamedLockFactory;
-import org.eclipse.aether.named.support.FileLockNamedLockFactory;
+import org.eclipse.aether.named.providers.LocalReadWriteLockNamedLockFactory;
+import org.junit.BeforeClass;
 
-import javax.inject.Named;
-import javax.inject.Provider;
-import javax.inject.Singleton;
+public class LocalReadWriteLockNamedLockFactoryTest
+    extends NamedLockFactoryTestSupport {
 
-/**
- * Provider of {@link FileLockNamedLockFactory} using file locks.
- */
-@Singleton
-@Named( FileLockProvider.NAME )
-public class FileLockProvider
-    implements Provider<NamedLockFactory>
-{
-  public static final String NAME = "file-lock";
-
-  @Override
-  public NamedLockFactory get()
-  {
-    return new FileLockNamedLockFactory();
-  }
+    @BeforeClass
+    public static void createNamedLockFactory() {
+        namedLockFactory = new LocalReadWriteLockNamedLockFactory();
+    }
 }

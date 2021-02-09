@@ -19,7 +19,7 @@ package org.eclipse.aether.internal.impl.synccontext;
  * under the License.
  */
 
-import org.eclipse.aether.named.providers.LocalSemaphoreProvider;
+import org.eclipse.aether.named.providers.LocalSemaphoreNamedLockFactory;
 import org.junit.BeforeClass;
 
 public class LocalSemaphoreAdapterTest
@@ -27,7 +27,7 @@ public class LocalSemaphoreAdapterTest
 {
     @BeforeClass
     public static void createNamedLockFactory() {
-        namedLockFactory = new LocalSemaphoreProvider().get();
+        namedLockFactory = new LocalSemaphoreNamedLockFactory();
         createAdapter();
     }
 }

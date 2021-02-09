@@ -1,4 +1,4 @@
-package org.eclipse.aether.named.support;
+package org.eclipse.aether.named.providers;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,11 +29,13 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.aether.named.support.NamedLockSupport;
+
 /**
  * Named lock that uses {@link FileLock}.
  */
 public final class FileLockNamedLock
-            extends NamedLockSupport
+    extends NamedLockSupport
 {
     private static final long LOCK_POSITION = 0L;
 

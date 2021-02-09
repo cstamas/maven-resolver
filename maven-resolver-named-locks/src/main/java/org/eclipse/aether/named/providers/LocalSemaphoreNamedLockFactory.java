@@ -19,47 +19,36 @@ package org.eclipse.aether.named.providers;
  * under the License.
  */
 
-import org.eclipse.aether.named.NamedLockFactory;
-import org.eclipse.aether.named.support.AdaptedSemaphoreNamedLock;
-import org.eclipse.aether.named.support.NamedLockFactorySupport;
-
-import javax.inject.Named;
-import javax.inject.Provider;
-import javax.inject.Singleton;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.eclipse.aether.named.support.AdaptedSemaphoreNamedLock;
+import org.eclipse.aether.named.support.NamedLockFactorySupport;
+
 /**
- * Provider of {@link LocalSemaphoreNamedLockFactory} using {@link java.util.concurrent.Semaphore}.
+ * A JVM-local named lock factory that uses named {@link Semaphore}s.
  */
 @Singleton
-@Named( LocalSemaphoreProvider.NAME )
-public class LocalSemaphoreProvider
-    implements Provider<NamedLockFactory>
+@Named( LocalSemaphoreNamedLockFactory.NAME )
+public class LocalSemaphoreNamedLockFactory
+    extends NamedLockFactorySupport<AdaptedSemaphoreNamedLock>
 {
   public static final String NAME = "semaphore-local";
 
   @Override
-  public NamedLockFactory get()
+  protected AdaptedSemaphoreNamedLock createLock( final String name )
   {
-    return new LocalSemaphoreNamedLockFactory();
+    return new AdaptedSemaphoreNamedLock( name, this, new JVMSemaphore() );
   }
 
   /**
-   * A JVM-local named lock factory that uses named {@link Semaphore}s.
+   * Adapted JVM {@link java.util.concurrent.Semaphore}.
    */
-  public static class LocalSemaphoreNamedLockFactory
-          extends NamedLockFactorySupport<AdaptedSemaphoreNamedLock>
-  {
-    @Override
-    protected AdaptedSemaphoreNamedLock createLock( final String name )
-    {
-      return new AdaptedSemaphoreNamedLock( name, this, new JVMSemaphore() );
-    }
-  }
-
   private static final class JVMSemaphore
-          implements AdaptedSemaphoreNamedLock.AdaptedSemaphore
+      implements AdaptedSemaphoreNamedLock.AdaptedSemaphore
   {
     private final Semaphore semaphore;
 

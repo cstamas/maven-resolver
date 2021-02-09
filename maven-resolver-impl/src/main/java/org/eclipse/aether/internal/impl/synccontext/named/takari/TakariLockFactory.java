@@ -21,8 +21,8 @@ package org.eclipse.aether.internal.impl.synccontext.named.takari;
 
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.internal.impl.synccontext.named.SessionAwareNamedLockFactory;
-import org.eclipse.aether.named.support.FileLockNamedLock;
-import org.eclipse.aether.named.support.FileLockNamedLockFactory;
+import org.eclipse.aether.named.providers.FileLockNamedLock;
+import org.eclipse.aether.named.providers.FileLockNamedLockFactory;
 
 import javax.inject.Named;
 import javax.inject.Singleton;

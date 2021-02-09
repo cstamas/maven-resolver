@@ -1,4 +1,4 @@
-package org.eclipse.aether.named.support;
+package org.eclipse.aether.named.providers;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,13 +28,22 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.eclipse.aether.named.support.NamedLockFactorySupport;
+
 /**
  * Named locks factory of {@link FileLockNamedLock}s. This is a bit special implementation, that expects that lock
  * names be valid FS paths.
  */
+@Singleton
+@Named( FileLockNamedLockFactory.NAME )
 public class FileLockNamedLockFactory
-        extends NamedLockFactorySupport<FileLockNamedLock>
+    extends NamedLockFactorySupport<FileLockNamedLock>
 {
+    public static final String NAME = "file-lock";
+
     private final ConcurrentHashMap<String, FileChannel> channels;
 
     public FileLockNamedLockFactory()

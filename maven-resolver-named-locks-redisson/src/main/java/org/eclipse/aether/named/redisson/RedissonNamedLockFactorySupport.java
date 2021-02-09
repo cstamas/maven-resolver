@@ -39,6 +39,8 @@ import java.nio.file.Paths;
 public abstract class RedissonNamedLockFactorySupport<L extends NamedLockSupport>
     extends NamedLockFactorySupport<L>
 {
+  protected static final String NAME_PREFIX = "maven:resolver:";
+
   private static final String DEFAULT_CONFIG_FILE_NAME = "maven-resolver-redisson.yaml";
 
   private static final String DEFAULT_REDIS_ADDRESS = "redis://localhost:6379";

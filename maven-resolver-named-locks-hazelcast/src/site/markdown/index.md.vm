@@ -24,9 +24,9 @@ Hazelcast 4.x semaphores.
 
 Out of the box "hazelcast" (distributed) named lock implementations are following:
 
-- `semaphore-hazelcast` implemented in `org.eclipse.aether.named.hazelcast.HazelcastCPSemaphoreProvider` that uses
+- `semaphore-hazelcast` implemented in `org.eclipse.aether.named.hazelcast.HazelcastCPSemaphoreNamedLockFactory` that uses
   Hazelcast backed `com.hazelcast.cp.ISemaphore`. Full Hazelcast member is used here.
-- `semaphore-hazelcast-client` implemented in `org.eclipse.aether.named.hazelcast.HazelcastClientCPSemaphoreProvider`
+- `semaphore-hazelcast-client` implemented in `org.eclipse.aether.named.hazelcast.HazelcastClientCPSemaphoreNamedLockFactory`
   that uses Hazelcast Client backed `com.hazelcast.cp.ISemaphore`. This implementation uses Hazelcast Client, so
   connection to some existing Hazelcast cluster and it's existence is a requirement.
 

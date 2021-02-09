@@ -28,7 +28,7 @@ public class HazelcastCPSemaphoreProviderIT
 
     @BeforeClass
     public static void createNamedLockFactory() {
-        namedLockFactory = new HazelcastCPSemaphoreProvider().get();
+        namedLockFactory = new HazelcastCPSemaphoreNamedLockFactory();
     }
 
     @AfterClass
