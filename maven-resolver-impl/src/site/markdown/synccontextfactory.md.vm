@@ -50,7 +50,7 @@ For the `aether.syncContext.named.nameMapping` property following values are all
 
 - `discriminating` (default), uses local repo + GAV to create unique lock names for artifacts.
 - `gav` uses GAV to create unique lock names for artifacts. Is not uniqque if mutliple local repositories are involved.
-- `static` uses static string "static" as lock name for any input, effectively making functionality same as "global"
+- `static` uses static (same) string as lock name for any input, effectively making functionality same as "global"
   locking SyncContextFactory.
 - `takari` creates same lock names as Takari takari-local-repository implementation.
 
@@ -66,3 +66,12 @@ Extra values for factory (these need extra setup and will work with SISU DI only
 - `semaphore-hazelcast-client`, distributed, usable with MT and MP builds, **extra setup needed**.
 - `rwlock-redisson`, distributed, usable with MT and MP builds, **extra setup needed**.
 - `semaphore-redisson`, distributed, usable with MT and MP builds, **extra setup needed**.
+
+Other configuration keys:
+
+- `aether.syncContext.named.static.name`, the value to use as static lock name, if `static` name mapper is used.
+- `aether.syncContext.named.discriminating.discriminator`, the value to use as discriminator. If not set,
+  sha1(hostname + local repo) is used as discriminator.
+- `aether.syncContext.named.discriminating.hostname`, the hostname to be used to create discriminator value 
+  (if above value not set).
+
