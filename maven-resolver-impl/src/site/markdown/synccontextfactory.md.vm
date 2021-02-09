@@ -19,6 +19,27 @@ specific language governing permissions and limitations
 under the License.
 -->
 
+In this module there are several implementations of SyncContextFactory. The SyncContextFactory component is responsible
+to synchronize (coordinate) access to shared resources in Maven Resolver internals. Some examples:
+- single threaded (ST) build on a single host: given resolution by default happens in multi threaded (MT) way, files
+  in a local repository must be protected for simultaneous access. In this case, it is enough for coordination to
+  happen "locally", at single JVM process level.
+- multi threaded (MT) build on a single host: same issues as above, but multiplied by MT build threads. As above,
+  in this case, it is enough for coordination to happen "locally", at JVM process level.
+- multi process (MP) build on a single host: in case multiple processes "share" (access, are set to use) a same local
+  repository, coordination must exist between processes as well. Here the coordination must span across multiple
+  JVM processes sharing same resource.
+- multi process (MP) build on multiple hosts using same (for example NFS mounted) local repository. Here again, the
+  shared resource (the NFS mounted local repository) should be protected for simultaneous access. Here the coordination
+  must span all the processes across all the hosts involved.
+
+As can be seen, the ST and MT cases can be solved by "local" locking at JVM level only. In MP single host case
+a cross process, and in MP multi-host case a cross process and cross host coordination is required.
+
+The defaults in Maven Resolver cover ST and MT cases out of the box (by default).
+
+${esc.hash}${esc.hash} Provided implementations
+
 This module provides default implementation for interface `org.eclipse.aether.spi.synccontext.SyncContextFactory` that
 is able to delegate to three implementation:
 
@@ -49,8 +70,8 @@ You can control and configure several aspects of Named Locks SyncContextFactory:
 For the `aether.syncContext.named.nameMapping` property following values are allowed:
 
 - `discriminating` (default), uses local repo + GAV to create unique lock names for artifacts.
-- `gav` uses GAV to create unique lock names for artifacts. Is not uniqque if mutliple local repositories are involved.
-- `static` uses static (same) string as lock name for any input, effectively making functionality same as "global"
+- `gav` uses GAV to create unique lock names for artifacts. Is not unique if multiple local repositories are involved.
+- `static` uses static (same) string as lock name for any input, effectively providing functionality same as "global"
   locking SyncContextFactory.
 - `takari` creates same lock names as Takari takari-local-repository implementation.
 
@@ -58,7 +79,8 @@ For the `aether.syncContext.named.factory` property following values are allowed
 
 - `rwlock-local` (default), uses JVM ReentrantReadWriteLock per lock name, usable for MT builds.
 - `semaphore-local`, uses JVM Semaphore per lock name, usable for MT builds.
-- `takari`, uses NIO FileLock based "advisory locking", usable for MP builds if other process uses same kind of locking.
+- `takari`, uses NIO FileLock based "advisory locking", usable for MP builds, if other processes uses same kind of
+  advisory locking.
 
 Extra values for factory (these need extra setup and will work with SISU DI only):
 
