@@ -1,4 +1,4 @@
-package org.eclipse.aether.named;
+package org.eclipse.aether.internal.impl.synccontext.takari;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,34 +19,16 @@ package org.eclipse.aether.named;
  * under the License.
  */
 
+import org.eclipse.aether.internal.impl.synccontext.NamedLockFactoryAdapterTestSupport;
+import org.eclipse.aether.internal.impl.synccontext.named.takari.TakariLockFactory;
 import org.eclipse.aether.named.providers.FileLockProvider;
 import org.junit.BeforeClass;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-public class FileLockProviderTest
-        extends NamedLockFactoryTestSupport {
-
+public class TakariAdapterTest
+    extends NamedLockFactoryAdapterTestSupport
+{
     @BeforeClass
-    public static void createNamedLockFactory() throws IOException {
-        Files.createDirectories(Paths.get(System.getProperty("java.io.tmpdir"))); // hack for surefire
-        namedLockFactory = new FileLockProvider().get();
-    }
-
-    /**
-     * We must adjust lock names to represent valid file names.
-     */
-    @Override
-    protected String lockName() {
-        try {
-            return Files.createTempDirectory("filelock").resolve(super.lockName()).toString();
-        }
-        catch (IOException e)
-        {
-            throw new UncheckedIOException(e);
-        }
+    public static void createNamedLockFactory() {
+        setNamedLockFactory(new TakariLockFactory());
     }
 }

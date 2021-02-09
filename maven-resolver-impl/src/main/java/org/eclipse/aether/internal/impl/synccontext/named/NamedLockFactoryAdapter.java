@@ -75,6 +75,8 @@ public final class NamedLockFactoryAdapter
 
         private final NameMapper lockNaming;
 
+        private final SessionAwareNamedLockFactory sessionAwareNamedLockFactory;
+
         private final NamedLockFactory namedLockFactory;
 
         private final long timeOut;
@@ -94,6 +96,9 @@ public final class NamedLockFactoryAdapter
         {
             this.session = session;
             this.lockNaming = lockNaming;
+            this.sessionAwareNamedLockFactory = namedLockFactory instanceof SessionAwareNamedLockFactory
+                    ? (SessionAwareNamedLockFactory) namedLockFactory
+                    : null;
             this.namedLockFactory = namedLockFactory;
             this.timeOut = timeOut;
             this.timeUnit = timeUnit;
@@ -115,7 +120,9 @@ public final class NamedLockFactoryAdapter
             int acquiredLockCount = 0;
             for ( String key : keys )
             {
-                NamedLock namedLock = namedLockFactory.getLock( key );
+                NamedLock namedLock = sessionAwareNamedLockFactory != null
+                        ? sessionAwareNamedLockFactory.getLock( session, key )
+                        : namedLockFactory.getLock( key );
                 try
                 {
                     boolean locked;

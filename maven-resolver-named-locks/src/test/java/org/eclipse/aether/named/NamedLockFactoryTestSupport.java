@@ -42,9 +42,14 @@ public abstract class NamedLockFactoryTestSupport {
     @Rule
     public TestName testName = new TestName();
 
+    protected String lockName()
+    {
+        return testName.getMethodName();
+    }
+
     @Test
     public void refCounting() {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         try (NamedLock one = namedLockFactory.getLock(name);
              NamedLock two = namedLockFactory.getLock(name)) {
             assertThat(one, sameInstance(two));
@@ -59,7 +64,7 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test(expected = IllegalStateException.class)
     public void unlockWoLock() {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         try (NamedLock one = namedLockFactory.getLock(name)) {
             one.unlock();
         }
@@ -67,7 +72,7 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test
     public void wwBoxing() throws InterruptedException {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         try (NamedLock one = namedLockFactory.getLock(name)) {
             assertThat(one.lockExclusively(1L, TimeUnit.MILLISECONDS), is(true));
             assertThat(one.lockExclusively(1L, TimeUnit.MILLISECONDS), is(true));
@@ -78,7 +83,7 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test
     public void rrBoxing() throws InterruptedException {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         try (NamedLock one = namedLockFactory.getLock(name)) {
             assertThat(one.lockShared(1L, TimeUnit.MILLISECONDS), is(true));
             assertThat(one.lockShared(1L, TimeUnit.MILLISECONDS), is(true));
@@ -89,7 +94,7 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test
     public void wrBoxing() throws InterruptedException {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         try (NamedLock one = namedLockFactory.getLock(name)) {
             assertThat(one.lockExclusively(1L, TimeUnit.MILLISECONDS), is(true));
             assertThat(one.lockShared(1L, TimeUnit.MILLISECONDS), is(true));
@@ -100,7 +105,7 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test
     public void rwBoxing() throws InterruptedException {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         try (NamedLock one = namedLockFactory.getLock(name)) {
             assertThat(one.lockShared(1L, TimeUnit.MILLISECONDS), is(true));
             assertThat(one.lockExclusively(1L, TimeUnit.MILLISECONDS), is(false));
@@ -110,7 +115,7 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test(timeout = 5000)
     public void sharedAccess() throws InterruptedException {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
         CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
         Thread t1 = new Thread(new Access(namedLockFactory, name, true, winners, losers));
@@ -125,7 +130,7 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test(timeout = 5000)
     public void exclusiveAccess() throws InterruptedException {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         CountDownLatch winners = new CountDownLatch(1); // we expect 1 winner
         CountDownLatch losers = new CountDownLatch(1); // we expect 1 loser
         Thread t1 = new Thread(new Access(namedLockFactory, name, false, winners, losers));
@@ -140,7 +145,7 @@ public abstract class NamedLockFactoryTestSupport {
 
     @Test(timeout = 5000)
     public void mixedAccess() throws InterruptedException {
-        final String name = testName.getMethodName();
+        final String name = lockName();
         CountDownLatch winners = new CountDownLatch(1); // we expect 1 winner
         CountDownLatch losers = new CountDownLatch(1); // we expect 1 loser
         Thread t1 = new Thread(new Access(namedLockFactory, name, true, winners, losers));

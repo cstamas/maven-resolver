@@ -1,4 +1,4 @@
-package org.eclipse.aether.internal.impl.synccontext.named;
+package org.eclipse.aether.internal.impl.synccontext.named.takari;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,18 +21,16 @@ package org.eclipse.aether.internal.impl.synccontext.named;
 
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
 import org.eclipse.aether.metadata.Metadata;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.TreeSet;
 
 /**
- * A {@link NameMapper} that creates same name mapping (file paths) as Takari Local Repository does.
+ * A {@link NameMapper} that creates same name mapping as Takari Local Repository does, without baseDir (local repo).
  * Part of code blatantly copies parts of the Takari {@code LockingSyncContext}.
  *
  * @see <a href="https://github.com/takari/takari-local-repository/blob/master/src/main/java/io/takari/aether/concurrency/LockingSyncContext.java">Takari LockingSyncContext.java</a>
@@ -51,30 +49,22 @@ public class TakariNameMapper
                                        final Collection<? extends Artifact> artifacts,
                                        final Collection<? extends Metadata> metadatas )
   {
-    try
+    TreeSet<String> paths = new TreeSet<>();
+    if ( artifacts != null )
     {
-      File basedir = new File( session.getLocalRepository().getBasedir(), ".locks" ).getCanonicalFile();
-      TreeSet<String> paths = new TreeSet<>();
-      if ( artifacts != null )
+      for ( Artifact artifact : artifacts )
       {
-        for ( Artifact artifact : artifacts )
-        {
-          paths.add( new File( basedir, getPath( artifact ) ).getPath() + ".aetherlock" );
-        }
+        paths.add( getPath( artifact ) + ".aetherlock" );
       }
-      if ( metadatas != null )
-      {
-        for ( Metadata metadata : metadatas )
-        {
-          paths.add( new File( basedir, getPath( metadata ) ).getPath() + ".aetherlock" );
-        }
-      }
-      return paths;
     }
-    catch ( IOException e )
+    if ( metadatas != null )
     {
-      throw new UncheckedIOException( e );
+      for ( Metadata metadata : metadatas )
+      {
+        paths.add( getPath( metadata ) + ".aetherlock" );
+      }
     }
+    return paths;
   }
 
   private String getPath( final Artifact artifact )

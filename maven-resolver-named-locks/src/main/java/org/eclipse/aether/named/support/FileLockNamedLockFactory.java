@@ -19,17 +19,77 @@ package org.eclipse.aether.named.support;
  * under the License.
  */
 
-import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Named locks factory of {@link FileLockNamedLock}s.
+ * Named locks factory of {@link FileLockNamedLock}s. This is a bit special implementation, that expects that lock
+ * names be valid FS paths.
  */
 public class FileLockNamedLockFactory
         extends NamedLockFactorySupport<FileLockNamedLock>
 {
-    @Override
-    protected FileLockNamedLock createLock( final String name )
+    private final ConcurrentHashMap<String, FileChannel> channels;
+
+    public FileLockNamedLockFactory()
     {
-        return new FileLockNamedLock( new File( name ), this );
+        this.channels = new ConcurrentHashMap<>();
+    }
+
+    @Override
+    protected FileLockNamedLock createLock( final String filename )
+    {
+        Path path = Paths.get( filename );
+        FileChannel fileChannel = channels.computeIfAbsent( filename, k ->
+        {
+            try
+            {
+                Files.createDirectories( path.getParent() );
+                return FileChannel.open(
+                        path,
+                        StandardOpenOption.READ, StandardOpenOption.WRITE,
+                        StandardOpenOption.CREATE, StandardOpenOption.DELETE_ON_CLOSE
+                );
+            }
+            catch ( IOException e )
+            {
+                throw new UncheckedIOException( path.toString(), e );
+            }
+        } );
+        return new FileLockNamedLock( filename, fileChannel, this );
+    }
+
+    @Override
+    protected void destroyLock( final FileLockNamedLock lock )
+    {
+        try
+        {
+            FileChannel fileChannel = channels.remove( lock.name() );
+            if ( fileChannel != null )
+            {
+                try
+                {
+                    fileChannel.close();
+                }
+                catch ( IOException e )
+                {
+                    throw new UncheckedIOException( e );
+                }
+            }
+            else
+            {
+                log.warn( "No FileChannel for lock named '{}'", lock.name() );
+            }
+        }
+        finally
+        {
+            super.destroyLock( lock );
+        }
     }
 }

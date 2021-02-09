@@ -234,6 +234,7 @@ public abstract class NamedLockFactoryAdapterTestSupport
           }
           loser.await();
         } catch (IllegalStateException e) {
+          e.printStackTrace(); // for ref purposes
           loser.countDown();
           winner.await();
         }

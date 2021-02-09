@@ -44,7 +44,7 @@ public abstract class NamedLockFactorySupport<L extends NamedLockSupport>
   }
 
   @Override
-  public NamedLockSupport getLock( final String name )
+  public L getLock( final String name )
   {
     return locks.compute( name, ( k, v ) ->
     {
