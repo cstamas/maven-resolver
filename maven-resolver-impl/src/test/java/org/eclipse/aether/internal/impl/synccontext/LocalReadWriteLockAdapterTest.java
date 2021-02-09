@@ -27,6 +27,7 @@ public class LocalReadWriteLockAdapterTest
 {
     @BeforeClass
     public static void createNamedLockFactory() {
-        setNamedLockFactory(new LocalReadWriteLockProvider().get());
+        namedLockFactory = new LocalReadWriteLockProvider().get();
+        createAdapter();
     }
 }

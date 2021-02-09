@@ -22,8 +22,9 @@ package org.eclipse.aether.internal.impl.synccontext;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.internal.impl.synccontext.named.GAVNameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.DiscriminatingNameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.GAVNameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapter;
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.repository.LocalRepository;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -46,202 +48,208 @@ import static org.mockito.Mockito.when;
 /**
  * UT support for {@link SyncContextFactory}.
  */
-public abstract class NamedLockFactoryAdapterTestSupport
-{
-  private static final long ADAPTER_TIME = 100L;
+public abstract class NamedLockFactoryAdapterTestSupport {
+    private static final long ADAPTER_TIME = 100L;
 
-  private static final TimeUnit ADAPTER_TIME_UNIT = TimeUnit.MILLISECONDS;
+    private static final TimeUnit ADAPTER_TIME_UNIT = TimeUnit.MILLISECONDS;
 
-  /**
-   * Subclass should populate this field, using {@link #setNamedLockFactory(NamedLockFactory)}, but subclass
-   * must take care of proper cleanup as well, if needed!
-   */
-  private static NamedLockFactoryAdapter adapter;
+    /**
+     * Subclass MAY populate this field but subclass must take care of proper cleanup as well, if needed!
+     */
+    protected static NameMapper nameMapper = new DiscriminatingNameMapper(new GAVNameMapper());
 
-  private RepositorySystemSession session;
+    /**
+     * Subclass MUST populate this field but subclass must take care of proper cleanup as well, if needed! Once set,
+     * subclass must MUST call {@link #createAdapter()}.
+     */
+    protected static NamedLockFactory namedLockFactory;
 
-  protected static void setNamedLockFactory(final NamedLockFactory namedLockFactory) {
-    adapter = new NamedLockFactoryAdapter(
-            new DiscriminatingNameMapper( new GAVNameMapper() ), namedLockFactory, ADAPTER_TIME, ADAPTER_TIME_UNIT
-    );
-  }
+    private static NamedLockFactoryAdapter adapter;
 
-  @AfterClass
-  public static void cleanupAdapter() {
-    if (adapter != null) {
-      adapter.shutdown();
-    }
-  }
+    private RepositorySystemSession session;
 
-  @Before
-  public void before() throws IOException {
-    Files.createDirectories(Paths.get(System.getProperty("java.io.tmpdir"))); // hack for surefire
-    LocalRepository localRepository = new LocalRepository(Files.createTempDirectory("test").toFile());
-    session = mock(RepositorySystemSession.class);
-    when(session.getLocalRepository()).thenReturn(localRepository);
-  }
-
-  @Test
-  public void justCreateAndClose() {
-    adapter.newInstance(session, false).close();
-  }
-
-  @Test
-  public void justAcquire() {
-    try (SyncContext syncContext = adapter.newInstance(session, false)) {
-      syncContext.acquire(
-          Arrays.asList(new DefaultArtifact("groupId:artifactId:1.0"), new DefaultArtifact("groupId:artifactId:1.1")),
-          null
-      );
-    }
-  }
-
-  @Test(timeout = 5000)
-  public void sharedAccess() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-    CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
-    Thread t1 = new Thread(new Access(true, winners, losers, adapter, session, null));
-    Thread t2 = new Thread(new Access(true, winners, losers, adapter, session, null));
-    t1.start();
-    t2.start();
-    t1.join();
-    t2.join();
-    winners.await();
-    losers.await();
-  }
-
-  @Test(timeout = 5000)
-  public void exclusiveAccess() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(1); // we expect 1 winner
-    CountDownLatch losers = new CountDownLatch(1); // we expect 1 loser
-    Thread t1 = new Thread(new Access(false, winners, losers, adapter, session, null));
-    Thread t2 = new Thread(new Access(false, winners, losers, adapter, session, null));
-    t1.start();
-    t2.start();
-    t1.join();
-    t2.join();
-    winners.await();
-    losers.await();
-  }
-
-  @Test(timeout = 5000)
-  public void mixedAccess() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(1); // we expect 1 winner
-    CountDownLatch losers = new CountDownLatch(1); // we expect 1 loser
-    Thread t1 = new Thread(new Access(true, winners, losers, adapter, session, null));
-    Thread t2 = new Thread(new Access(false, winners, losers, adapter, session, null));
-    t1.start();
-    t2.start();
-    t1.join();
-    t2.join();
-    winners.await();
-    losers.await();
-  }
-
-  @Test(timeout = 5000)
-  public void nestedSharedShared() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-    CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
-    Thread t1 = new Thread(
-            new Access(true, winners, losers, adapter, session,
-                    new Access(true, winners, losers, adapter, session, null)
-            )
-    );
-    t1.start();
-    t1.join();
-    winners.await();
-    losers.await();
-  }
-
-  @Test(timeout = 5000)
-  public void nestedExclusiveShared() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-    CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
-    Thread t1 = new Thread(
-            new Access(false, winners, losers, adapter, session,
-                    new Access(true, winners, losers, adapter, session, null)
-            )
-    );
-    t1.start();
-    t1.join();
-    winners.await();
-    losers.await();
-  }
-
-  @Test(timeout = 5000)
-  public void nestedExclusiveExclusive() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-    CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
-    Thread t1 = new Thread(
-            new Access(false, winners, losers, adapter, session,
-                    new Access(false, winners, losers, adapter, session, null)
-            )
-    );
-    t1.start();
-    t1.join();
-    winners.await();
-    losers.await();
-  }
-
-  @Test(timeout = 5000)
-  public void nestedSharedExclusive() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(1); // we expect 1 winner (outer)
-    CountDownLatch losers = new CountDownLatch(1); // we expect 1 loser (inner)
-    Thread t1 = new Thread(
-            new Access(true, winners, losers, adapter, session,
-                    new Access(false, winners, losers, adapter, session, null)
-            )
-    );
-    t1.start();
-    t1.join();
-    winners.await();
-    losers.await();
-  }
-
-  private static class Access implements Runnable {
-    final boolean shared;
-    final CountDownLatch winner;
-    final CountDownLatch loser;
-    final NamedLockFactoryAdapter adapter;
-    final RepositorySystemSession session;
-    final Access chained;
-
-    public Access(boolean shared,
-                  CountDownLatch winner,
-                  CountDownLatch loser,
-                  NamedLockFactoryAdapter adapter,
-                  RepositorySystemSession session,
-                  Access chained) {
-      this.shared = shared;
-      this.winner = winner;
-      this.loser = loser;
-      this.adapter = adapter;
-      this.session = session;
-      this.chained = chained;
+    public static void createAdapter() {
+        Objects.requireNonNull(namedLockFactory, "NamedLockFactory not set");
+        adapter = new NamedLockFactoryAdapter(
+                nameMapper, namedLockFactory, ADAPTER_TIME, ADAPTER_TIME_UNIT
+        );
     }
 
-    @Override
-    public void run() {
-      try {
-        try (SyncContext syncContext = adapter.newInstance(session, shared)) {
-          syncContext.acquire(
-                  Arrays.asList(new DefaultArtifact("groupId:artifactId:1.0"), new DefaultArtifact("groupId:artifactId:1.1")),
-                  null
-          );
-          winner.countDown();
-          if (chained != null) {
-            chained.run();
-          }
-          loser.await();
-        } catch (IllegalStateException e) {
-          e.printStackTrace(); // for ref purposes
-          loser.countDown();
-          winner.await();
+    @AfterClass
+    public static void cleanupAdapter() {
+        if (adapter != null) {
+            adapter.shutdown();
         }
-      }
-      catch (InterruptedException e) {
-        Assert.fail("interrupted");
-      }
     }
-  }
+
+    @Before
+    public void before() throws IOException {
+        Files.createDirectories(Paths.get(System.getProperty("java.io.tmpdir"))); // hack for surefire
+        LocalRepository localRepository = new LocalRepository(Files.createTempDirectory("test").toFile());
+        session = mock(RepositorySystemSession.class);
+        when(session.getLocalRepository()).thenReturn(localRepository);
+    }
+
+    @Test
+    public void justCreateAndClose() {
+        adapter.newInstance(session, false).close();
+    }
+
+    @Test
+    public void justAcquire() {
+        try (SyncContext syncContext = adapter.newInstance(session, false)) {
+            syncContext.acquire(
+                    Arrays.asList(new DefaultArtifact("groupId:artifactId:1.0"), new DefaultArtifact("groupId:artifactId:1.1")),
+                    null
+            );
+        }
+    }
+
+    @Test(timeout = 5000)
+    public void sharedAccess() throws InterruptedException {
+        CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
+        CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+        Thread t1 = new Thread(new Access(true, winners, losers, adapter, session, null));
+        Thread t2 = new Thread(new Access(true, winners, losers, adapter, session, null));
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        winners.await();
+        losers.await();
+    }
+
+    @Test(timeout = 5000)
+    public void exclusiveAccess() throws InterruptedException {
+        CountDownLatch winners = new CountDownLatch(1); // we expect 1 winner
+        CountDownLatch losers = new CountDownLatch(1); // we expect 1 loser
+        Thread t1 = new Thread(new Access(false, winners, losers, adapter, session, null));
+        Thread t2 = new Thread(new Access(false, winners, losers, adapter, session, null));
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        winners.await();
+        losers.await();
+    }
+
+    @Test(timeout = 5000)
+    public void mixedAccess() throws InterruptedException {
+        CountDownLatch winners = new CountDownLatch(1); // we expect 1 winner
+        CountDownLatch losers = new CountDownLatch(1); // we expect 1 loser
+        Thread t1 = new Thread(new Access(true, winners, losers, adapter, session, null));
+        Thread t2 = new Thread(new Access(false, winners, losers, adapter, session, null));
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        winners.await();
+        losers.await();
+    }
+
+    @Test(timeout = 5000)
+    public void nestedSharedShared() throws InterruptedException {
+        CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
+        CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+        Thread t1 = new Thread(
+                new Access(true, winners, losers, adapter, session,
+                        new Access(true, winners, losers, adapter, session, null)
+                )
+        );
+        t1.start();
+        t1.join();
+        winners.await();
+        losers.await();
+    }
+
+    @Test(timeout = 5000)
+    public void nestedExclusiveShared() throws InterruptedException {
+        CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
+        CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+        Thread t1 = new Thread(
+                new Access(false, winners, losers, adapter, session,
+                        new Access(true, winners, losers, adapter, session, null)
+                )
+        );
+        t1.start();
+        t1.join();
+        winners.await();
+        losers.await();
+    }
+
+    @Test(timeout = 5000)
+    public void nestedExclusiveExclusive() throws InterruptedException {
+        CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
+        CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+        Thread t1 = new Thread(
+                new Access(false, winners, losers, adapter, session,
+                        new Access(false, winners, losers, adapter, session, null)
+                )
+        );
+        t1.start();
+        t1.join();
+        winners.await();
+        losers.await();
+    }
+
+    @Test(timeout = 5000)
+    public void nestedSharedExclusive() throws InterruptedException {
+        CountDownLatch winners = new CountDownLatch(1); // we expect 1 winner (outer)
+        CountDownLatch losers = new CountDownLatch(1); // we expect 1 loser (inner)
+        Thread t1 = new Thread(
+                new Access(true, winners, losers, adapter, session,
+                        new Access(false, winners, losers, adapter, session, null)
+                )
+        );
+        t1.start();
+        t1.join();
+        winners.await();
+        losers.await();
+    }
+
+    private static class Access implements Runnable {
+        final boolean shared;
+        final CountDownLatch winner;
+        final CountDownLatch loser;
+        final NamedLockFactoryAdapter adapter;
+        final RepositorySystemSession session;
+        final Access chained;
+
+        public Access(boolean shared,
+                      CountDownLatch winner,
+                      CountDownLatch loser,
+                      NamedLockFactoryAdapter adapter,
+                      RepositorySystemSession session,
+                      Access chained) {
+            this.shared = shared;
+            this.winner = winner;
+            this.loser = loser;
+            this.adapter = adapter;
+            this.session = session;
+            this.chained = chained;
+        }
+
+        @Override
+        public void run() {
+            try {
+                try (SyncContext syncContext = adapter.newInstance(session, shared)) {
+                    syncContext.acquire(
+                            Arrays.asList(new DefaultArtifact("groupId:artifactId:1.0"), new DefaultArtifact("groupId:artifactId:1.1")),
+                            null
+                    );
+                    winner.countDown();
+                    if (chained != null) {
+                        chained.run();
+                    }
+                    loser.await();
+                } catch (IllegalStateException e) {
+                    e.printStackTrace(); // for ref purposes
+                    loser.countDown();
+                    winner.await();
+                }
+            } catch (InterruptedException e) {
+                Assert.fail("interrupted");
+            }
+        }
+    }
 }

@@ -27,6 +27,7 @@ public class LocalSemaphoreAdapterTest
 {
     @BeforeClass
     public static void createNamedLockFactory() {
-        setNamedLockFactory(new LocalSemaphoreProvider().get());
+        namedLockFactory = new LocalSemaphoreProvider().get();
+        createAdapter();
     }
 }

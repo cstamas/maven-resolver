@@ -21,7 +21,7 @@ package org.eclipse.aether.internal.impl.synccontext.takari;
 
 import org.eclipse.aether.internal.impl.synccontext.NamedLockFactoryAdapterTestSupport;
 import org.eclipse.aether.internal.impl.synccontext.named.takari.TakariLockFactory;
-import org.eclipse.aether.named.providers.FileLockProvider;
+import org.eclipse.aether.internal.impl.synccontext.named.takari.TakariNameMapper;
 import org.junit.BeforeClass;
 
 public class TakariAdapterTest
@@ -29,6 +29,8 @@ public class TakariAdapterTest
 {
     @BeforeClass
     public static void createNamedLockFactory() {
-        setNamedLockFactory(new TakariLockFactory());
+        nameMapper = new TakariNameMapper();
+        namedLockFactory = new TakariLockFactory();
+        createAdapter();
     }
 }
