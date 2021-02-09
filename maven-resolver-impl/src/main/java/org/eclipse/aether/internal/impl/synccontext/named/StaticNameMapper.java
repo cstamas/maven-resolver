@@ -30,6 +30,7 @@ import javax.inject.Singleton;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.metadata.Metadata;
+import org.eclipse.aether.util.ConfigUtils;
 
 /**
  * Static {@link NameMapper}, always assigns one same name, effectively becoming equivalent to "global" sync context.
@@ -41,7 +42,12 @@ public class StaticNameMapper
 {
   public static final String NAME = "static";
 
-  private final Collection<String> lockNames;
+  /**
+   * Configuration property to pass in static name.
+   */
+  private static final String CONFIG_PROP_NAME = "aether.syncContext.named.static.name";
+
+  private final String globalName;
 
   /**
    * Uses string {@code "global"} for the static name.
@@ -55,10 +61,9 @@ public class StaticNameMapper
   /**
    * Uses passed in non-{@code null} string for the static name.
    */
-  public StaticNameMapper( final String globalName )
+  public StaticNameMapper( final String name )
   {
-    Objects.requireNonNull( globalName );
-    this.lockNames = Collections.singletonList( globalName );
+    this.globalName = Objects.requireNonNull( name );
   }
 
   @Override
@@ -66,6 +71,8 @@ public class StaticNameMapper
                                        final Collection<? extends Artifact> artifacts,
                                        final Collection<? extends Metadata> metadatas )
   {
-    return lockNames;
+    return Collections.singletonList(
+            ConfigUtils.getString( session, this.globalName, CONFIG_PROP_NAME )
+    );
   }
 }

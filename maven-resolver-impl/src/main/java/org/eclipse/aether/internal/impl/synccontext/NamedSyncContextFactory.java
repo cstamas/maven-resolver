@@ -22,7 +22,7 @@ package org.eclipse.aether.internal.impl.synccontext;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.internal.impl.synccontext.named.GAVNameMapper;
-import org.eclipse.aether.internal.impl.synccontext.named.LGAVNameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.DiscriminatingNameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapter;
 import org.eclipse.aether.internal.impl.synccontext.named.StaticNameMapper;
@@ -55,7 +55,7 @@ public final class NamedSyncContextFactory
     );
 
     private static final String NAME_MAPPING = System.getProperty(
-        "aether.syncContext.named.nameMapping", LGAVNameMapper.NAME
+        "aether.syncContext.named.nameMapping", DiscriminatingNameMapper.NAME
     );
 
     private static final long TIME_OUT = Long.getLong(
@@ -86,7 +86,7 @@ public final class NamedSyncContextFactory
         HashMap<String, NameMapper> nameMappers = new HashMap<>();
         nameMappers.put( StaticNameMapper.NAME, new StaticNameMapper() );
         nameMappers.put( GAVNameMapper.NAME, new GAVNameMapper() );
-        nameMappers.put( LGAVNameMapper.NAME, new LGAVNameMapper( new GAVNameMapper() ) );
+        nameMappers.put( DiscriminatingNameMapper.NAME, new DiscriminatingNameMapper( new GAVNameMapper() ) );
         HashMap<String, Provider<NamedLockFactory>> providers = new HashMap<>();
         providers.put( LocalReadWriteLockProvider.NAME, new LocalReadWriteLockProvider() );
         providers.put( LocalSemaphoreProvider.NAME, new LocalSemaphoreProvider() );

@@ -43,21 +43,28 @@ import org.slf4j.LoggerFactory;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Discriminating {@link NameMapper}, that wraps {@link GAVNameMapper} and adds "discriminator" as prefix,
- * that makes lock names unique including local repository + GAV. The discriminator may be passed in via
+ * Discriminating {@link NameMapper}, that wraps another {@link NameMapper} and adds "discriminator" as prefix,
+ * that makes lock names unique including local repository (by default). The discriminator may be passed in via
  * {@link RepositorySystemSession} or is automatically calculated based on local repository path.
+ *
+ * The default setup wraps {@link GAVNameMapper}, but manually may be created any instance needed.
  */
 @Singleton
-@Named( LGAVNameMapper.NAME )
-public class LGAVNameMapper
+@Named( DiscriminatingNameMapper.NAME )
+public class DiscriminatingNameMapper
     implements NameMapper
 {
-  public static final String NAME = "lgav";
+  public static final String NAME = "discriminating";
 
   /**
    * Configuration property to pass in discriminator.
    */
-  private static final String CONFIG_PROP_DISCRIMINATOR = "aether.syncContext.named.discriminator";
+  private static final String CONFIG_PROP_DISCRIMINATOR = "aether.syncContext.named.discriminating.discriminator";
+
+  /**
+   * Configuration property to pass in hostname.
+   */
+  private static final String CONFIG_PROP_HOSTNAME = "aether.syncContext.named.discriminating.hostname";
 
   private static final String DEFAULT_DISCRIMINATOR_DIGEST = "da39a3ee5e6b4b0d3255bfef95601890afd80709";
 
@@ -65,14 +72,14 @@ public class LGAVNameMapper
 
   private final Logger log = LoggerFactory.getLogger( getClass() );
 
-  private final GAVNameMapper gavNameMapper;
+  private final NameMapper nameMapper;
 
   private final String hostname;
 
   @Inject
-  public LGAVNameMapper( final GAVNameMapper gavNameMapper )
+  public DiscriminatingNameMapper( @Named( GAVNameMapper.NAME ) final NameMapper nameMapper )
   {
-    this.gavNameMapper = Objects.requireNonNull( gavNameMapper );
+    this.nameMapper = Objects.requireNonNull( nameMapper );
     this.hostname = getHostname();
   }
 
@@ -82,7 +89,7 @@ public class LGAVNameMapper
                                        final Collection<? extends Metadata> metadatas )
   {
     String discriminator = createDiscriminator( session );
-    return gavNameMapper.nameLocks( session, artifacts, metadatas ).stream()
+    return nameMapper.nameLocks( session, artifacts, metadatas ).stream()
             .map( s -> discriminator + ":" + s )
             .collect( toList() );
   }
@@ -106,6 +113,7 @@ public class LGAVNameMapper
 
     if ( discriminator == null || discriminator.isEmpty() )
     {
+      String hostname = ConfigUtils.getString( session, this.hostname, CONFIG_PROP_HOSTNAME );
       File basedir = session.getLocalRepository().getBasedir();
       discriminator = hostname + ":" + basedir;
       try

@@ -47,7 +47,7 @@ import org.eclipse.aether.internal.impl.synccontext.NamedSyncContextFactory;
 import org.eclipse.aether.internal.impl.synccontext.NoLockSyncContextFactory;
 import org.eclipse.aether.internal.impl.synccontext.SyncContextFactoryDelegate;
 import org.eclipse.aether.internal.impl.synccontext.named.GAVNameMapper;
-import org.eclipse.aether.internal.impl.synccontext.named.LGAVNameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.DiscriminatingNameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.StaticNameMapper;
 import org.eclipse.aether.named.NamedLockFactory;
@@ -171,8 +171,8 @@ public class AetherModule
             .to( StaticNameMapper.class ).in( Singleton.class );
         bind( NameMapper.class ).annotatedWith( Names.named( GAVNameMapper.NAME ) )
             .to( GAVNameMapper.class ).in( Singleton.class );
-        bind( NameMapper.class ).annotatedWith( Names.named( LGAVNameMapper.NAME ) )
-            .to( LGAVNameMapper.class ).in( Singleton.class );
+        bind( NameMapper.class ).annotatedWith( Names.named( DiscriminatingNameMapper.NAME ) )
+            .to( DiscriminatingNameMapper.class ).in( Singleton.class );
 
         bind( NamedLockFactory.class ).annotatedWith( Names.named( LocalReadWriteLockProvider.NAME ) )
                 .toProvider( LocalReadWriteLockProvider.class ).in( Singleton.class );
@@ -202,12 +202,12 @@ public class AetherModule
     Map<String, NameMapper> provideNameMappers(
         @Named( StaticNameMapper.NAME ) NameMapper staticNameMapper,
         @Named( GAVNameMapper.NAME ) NameMapper gavNameMapper,
-        @Named( LGAVNameMapper.NAME ) NameMapper lgavNameMapper )
+        @Named( DiscriminatingNameMapper.NAME ) NameMapper lgavNameMapper )
     {
         Map<String, NameMapper> nameMappers = new HashMap<>();
         nameMappers.put( StaticNameMapper.NAME, staticNameMapper );
         nameMappers.put( GAVNameMapper.NAME, gavNameMapper );
-        nameMappers.put( LGAVNameMapper.NAME, lgavNameMapper );
+        nameMappers.put( DiscriminatingNameMapper.NAME, lgavNameMapper );
         return Collections.unmodifiableMap( nameMappers );
     }
 

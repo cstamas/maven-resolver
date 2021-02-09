@@ -23,7 +23,7 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.internal.impl.synccontext.named.GAVNameMapper;
-import org.eclipse.aether.internal.impl.synccontext.named.LGAVNameMapper;
+import org.eclipse.aether.internal.impl.synccontext.named.DiscriminatingNameMapper;
 import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapter;
 import org.eclipse.aether.named.NamedLockFactory;
 import org.eclipse.aether.repository.LocalRepository;
@@ -62,7 +62,7 @@ public abstract class NamedLockFactoryAdapterTestSupport
 
   protected static void setNamedLockFactory(final NamedLockFactory namedLockFactory) {
     adapter = new NamedLockFactoryAdapter(
-            new LGAVNameMapper( new GAVNameMapper() ), namedLockFactory, ADAPTER_TIME, ADAPTER_TIME_UNIT
+            new DiscriminatingNameMapper( new GAVNameMapper() ), namedLockFactory, ADAPTER_TIME, ADAPTER_TIME_UNIT
     );
   }
 
