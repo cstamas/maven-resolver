@@ -60,11 +60,11 @@ public final class NamedSyncContextFactory
     );
 
     private static final long TIME_OUT = Long.getLong(
-            "aether.syncContext.named.timeOut", 30L
+            "aether.syncContext.named.timeout", 30L
     );
 
     private static final TimeUnit TIME_UNIT = TimeUnit.valueOf( System.getProperty(
-            "aether.syncContext.named.timeUnit", TimeUnit.SECONDS.name()
+            "aether.syncContext.named.timeout.unit", TimeUnit.SECONDS.name()
     ) );
 
     private final NamedLockFactoryAdapter namedLockFactoryAdapter;

@@ -61,8 +61,8 @@ You can control and configure several aspects of Named Locks SyncContextFactory:
 
 - `aether.syncContext.named.nameMapping` (optional, default is `discriminating`): local repo + GAV.
 - `aether.syncContext.named.factory` (optional, default is `rwlock-local`): the Named Lock factory to be used.
-- `aether.syncContext.named.timeOut` (optional, default is 30): the time out value for being blocked on a lock.
-- `aether.syncContext.named.timeUnit` (optional, default is `java.util.concurrent.TimeUnit.SECONDS`): the time unit
+- `aether.syncContext.named.timeout` (optional, default is 30): the time out value for being blocked on a lock.
+- `aether.syncContext.named.timeout.unit` (optional, default is `java.util.concurrent.TimeUnit.SECONDS`): the time unit
   of time out value.
 - `aether.syncContext.named.discriminator` (optional): A discriminator uniquely identifying a host and local
   repository pair.
