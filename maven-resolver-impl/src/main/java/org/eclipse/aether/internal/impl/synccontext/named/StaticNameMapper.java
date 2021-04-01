@@ -33,7 +33,7 @@ import org.eclipse.aether.metadata.Metadata;
 import org.eclipse.aether.util.ConfigUtils;
 
 /**
- * Static {@link NameMapper}, always assigns one same name, effectively becoming equivalent to "global" sync context.
+ * Static {@link NameMapper}, always assigns one same name, effectively becoming equivalent to "static" sync context.
  */
 @Singleton
 @Named( StaticNameMapper.NAME )
@@ -47,10 +47,10 @@ public class StaticNameMapper
    */
   private static final String CONFIG_PROP_NAME = "aether.syncContext.named.static.name";
 
-  private final String globalName;
+  private final String name;
 
   /**
-   * Uses string {@code "global"} for the static name.
+   * Uses string {@code "static"} for the static name.
    */
   @Inject
   public StaticNameMapper()
@@ -63,7 +63,7 @@ public class StaticNameMapper
    */
   public StaticNameMapper( final String name )
   {
-    this.globalName = Objects.requireNonNull( name );
+    this.name = Objects.requireNonNull( name );
   }
 
   @Override
@@ -72,7 +72,7 @@ public class StaticNameMapper
                                        final Collection<? extends Metadata> metadatas )
   {
     return Collections.singletonList(
-            ConfigUtils.getString( session, this.globalName, CONFIG_PROP_NAME )
+            ConfigUtils.getString( session, name, CONFIG_PROP_NAME )
     );
   }
 }
