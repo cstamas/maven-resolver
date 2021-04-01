@@ -34,8 +34,6 @@ public class RedissonReadWriteLockNamedLockFactory
 {
   public static final String NAME = "rwlock-redisson";
 
-  private static final String NAME_PREFIX = "maven:resolver:";
-
   @Override
   protected AdaptedReadWriteLockNamedLock createLock( final String name )
   {
