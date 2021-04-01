@@ -207,13 +207,13 @@ public class AetherModule
     Map<String, NameMapper> provideNameMappers(
         @Named( StaticNameMapper.NAME ) NameMapper staticNameMapper,
         @Named( GAVNameMapper.NAME ) NameMapper gavNameMapper,
-        @Named( DiscriminatingNameMapper.NAME ) NameMapper lgavNameMapper,
+        @Named( DiscriminatingNameMapper.NAME ) NameMapper discriminatingNameMapper,
         @Named( TakariNameMapper.NAME ) NameMapper takariNameMapper )
     {
         Map<String, NameMapper> nameMappers = new HashMap<>();
         nameMappers.put( StaticNameMapper.NAME, staticNameMapper );
         nameMappers.put( GAVNameMapper.NAME, gavNameMapper );
-        nameMappers.put( DiscriminatingNameMapper.NAME, lgavNameMapper );
+        nameMappers.put( DiscriminatingNameMapper.NAME, discriminatingNameMapper );
         nameMappers.put( TakariNameMapper.NAME, takariNameMapper );
         return Collections.unmodifiableMap( nameMappers );
     }
