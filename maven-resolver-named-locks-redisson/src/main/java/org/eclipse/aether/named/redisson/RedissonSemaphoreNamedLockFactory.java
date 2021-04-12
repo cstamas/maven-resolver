@@ -20,6 +20,7 @@ package org.eclipse.aether.named.redisson;
  */
 
 import org.eclipse.aether.named.support.AdaptedSemaphoreNamedLock;
+import org.eclipse.aether.named.support.NamedLockSupport;
 import org.redisson.api.RSemaphore;
 
 import javax.inject.Named;
@@ -32,12 +33,12 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 @Named( RedissonSemaphoreNamedLockFactory.NAME )
 public class RedissonSemaphoreNamedLockFactory
-    extends RedissonNamedLockFactorySupport<AdaptedSemaphoreNamedLock>
+    extends RedissonNamedLockFactorySupport
 {
   public static final String NAME = "semaphore-redisson";
 
   @Override
-  protected AdaptedSemaphoreNamedLock createLock( final String name )
+  protected NamedLockSupport createLock( final String name )
   {
     return new AdaptedSemaphoreNamedLock(
             name, this, new RedissonSemaphore( redissonClient.getSemaphore( NAME_PREFIX + name ) )

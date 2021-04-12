@@ -20,6 +20,7 @@ package org.eclipse.aether.named.redisson;
  */
 
 import org.eclipse.aether.named.support.AdaptedReadWriteLockNamedLock;
+import org.eclipse.aether.named.support.NamedLockSupport;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -30,12 +31,12 @@ import javax.inject.Singleton;
 @Singleton
 @Named( RedissonReadWriteLockNamedLockFactory.NAME )
 public class RedissonReadWriteLockNamedLockFactory
-    extends RedissonNamedLockFactorySupport<AdaptedReadWriteLockNamedLock>
+    extends RedissonNamedLockFactorySupport
 {
   public static final String NAME = "rwlock-redisson";
 
   @Override
-  protected AdaptedReadWriteLockNamedLock createLock( final String name )
+  protected NamedLockSupport createLock( final String name )
   {
     return new AdaptedReadWriteLockNamedLock(
             name,

@@ -33,7 +33,7 @@ import org.eclipse.aether.named.support.NamedLockFactorySupport;
 @Singleton
 @Named( LocalReadWriteLockNamedLockFactory.NAME )
 public class LocalReadWriteLockNamedLockFactory
-    extends NamedLockFactorySupport<AdaptedReadWriteLockNamedLock>
+    extends NamedLockFactorySupport
 {
   public static final String NAME = "rwlock-local";
 

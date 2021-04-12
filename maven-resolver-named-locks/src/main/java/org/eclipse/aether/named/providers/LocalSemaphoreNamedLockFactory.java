@@ -34,7 +34,7 @@ import org.eclipse.aether.named.support.NamedLockFactorySupport;
 @Singleton
 @Named( LocalSemaphoreNamedLockFactory.NAME )
 public class LocalSemaphoreNamedLockFactory
-    extends NamedLockFactorySupport<AdaptedSemaphoreNamedLock>
+    extends NamedLockFactorySupport
 {
   public static final String NAME = "semaphore-local";
 

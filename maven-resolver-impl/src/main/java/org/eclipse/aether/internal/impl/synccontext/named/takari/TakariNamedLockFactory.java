@@ -21,8 +21,8 @@ package org.eclipse.aether.internal.impl.synccontext.named.takari;
 
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.internal.impl.synccontext.named.SessionAwareNamedLockFactory;
-import org.eclipse.aether.named.providers.FileLockNamedLock;
 import org.eclipse.aether.named.providers.FileLockNamedLockFactory;
+import org.eclipse.aether.named.support.NamedLockSupport;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -46,7 +46,7 @@ public class TakariNamedLockFactory
   public static final String NAME = "takari";
 
   @Override
-  public FileLockNamedLock getLock( final RepositorySystemSession session, final String name )
+  public NamedLockSupport getLock( final RepositorySystemSession session, final String name )
   {
     try
     {
@@ -62,7 +62,7 @@ public class TakariNamedLockFactory
   }
 
   @Override
-  public FileLockNamedLock getLock( final String filename )
+  public NamedLockSupport getLock( final String filename )
   {
     throw new IllegalStateException( "This factory is session aware" );
   }

@@ -32,6 +32,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.eclipse.aether.named.support.NamedLockFactorySupport;
+import org.eclipse.aether.named.support.NamedLockSupport;
 
 /**
  * Named locks factory of {@link FileLockNamedLock}s. This is a bit special implementation, that expects that lock
@@ -40,7 +41,7 @@ import org.eclipse.aether.named.support.NamedLockFactorySupport;
 @Singleton
 @Named( FileLockNamedLockFactory.NAME )
 public class FileLockNamedLockFactory
-    extends NamedLockFactorySupport<FileLockNamedLock>
+    extends NamedLockFactorySupport
 {
     public static final String NAME = "file-lock";
 
@@ -52,7 +53,7 @@ public class FileLockNamedLockFactory
     }
 
     @Override
-    protected FileLockNamedLock createLock( final String filename )
+    protected NamedLockSupport createLock( final String filename )
     {
         Path path = Paths.get( filename );
         FileChannel fileChannel = channels.computeIfAbsent( filename, k ->
@@ -75,7 +76,7 @@ public class FileLockNamedLockFactory
     }
 
     @Override
-    protected void destroyLock( final FileLockNamedLock lock )
+    protected void destroyLock( final NamedLockSupport lock )
     {
         try
         {

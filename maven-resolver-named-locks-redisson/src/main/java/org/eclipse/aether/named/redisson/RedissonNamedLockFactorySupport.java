@@ -20,7 +20,6 @@ package org.eclipse.aether.named.redisson;
  */
 
 import org.eclipse.aether.named.support.NamedLockFactorySupport;
-import org.eclipse.aether.named.support.NamedLockSupport;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -33,11 +32,9 @@ import java.nio.file.Paths;
 
 /**
  * Support class for factories using {@link RedissonClient}.
- *
- * @param <L> the actual implementation, subclass of {@link NamedLockSupport}.
  */
-public abstract class RedissonNamedLockFactorySupport<L extends NamedLockSupport>
-    extends NamedLockFactorySupport<L>
+public abstract class RedissonNamedLockFactorySupport
+    extends NamedLockFactorySupport
 {
   protected static final String NAME_PREFIX = "maven:resolver:";
 
