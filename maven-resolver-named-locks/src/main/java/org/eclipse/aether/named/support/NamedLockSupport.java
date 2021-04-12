@@ -19,8 +19,6 @@ package org.eclipse.aether.named.support;
  * under the License.
  */
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.eclipse.aether.named.NamedLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,60 +26,47 @@ import org.slf4j.LoggerFactory;
 /**
  * Support class for {@link NamedLock} implementations providing reference counting.
  */
-public abstract class NamedLockSupport
-    implements NamedLock
+public abstract class NamedLockSupport implements NamedLock
 {
-  protected final Logger log = LoggerFactory.getLogger( getClass() );
+    protected final Logger log = LoggerFactory.getLogger( getClass() );
 
-  private final String name;
+    private final String name;
 
-  private final NamedLockFactorySupport factory;
+    private final NamedLockFactorySupport factory;
 
-  private final AtomicInteger refCount;
-
-  public NamedLockSupport( final String name, final NamedLockFactorySupport factory )
-  {
-    this.name = name;
-    this.factory = factory;
-    this.refCount = new AtomicInteger( 0 );
-  }
-
-  public int incRef()
-  {
-    return refCount.incrementAndGet();
-  }
-
-  public int decRef()
-  {
-    return refCount.decrementAndGet();
-  }
-
-  @Override
-  public String name()
-  {
-    return name;
-  }
-
-  @Override
-  public void close()
-  {
-    factory.closeLock( this );
-  }
-
-  @Override
-  protected void finalize() throws Throwable
-  {
-    try
+    public NamedLockSupport( final String name, final NamedLockFactorySupport factory )
     {
-      if ( refCount.get() != 0 )
-      {
-        // report leak
-        log.warn( "NamedLock leak: {} references={}", name, refCount.get() );
-      }
+        this.name = name;
+        this.factory = factory;
     }
-    finally
+
+    @Override
+    public String name()
     {
-      super.finalize();
+        return name;
     }
-  }
+
+    @Override
+    public void close()
+    {
+        factory.closeLock( this );
+    }
+
+    @Override
+    protected void finalize() throws Throwable
+    {
+        try
+        {
+            int refCount = factory.refCount( name );
+            if ( refCount != 0 )
+            {
+                // report leak
+                log.warn( "NamedLock leak: {} references={}", name, refCount );
+            }
+        }
+        finally
+        {
+            super.finalize();
+        }
+    }
 }

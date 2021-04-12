@@ -29,8 +29,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 /**
  * Named lock support implementation that is using {@link ReadWriteLock} instances.
  */
-public class AdaptedReadWriteLockNamedLock
-        extends NamedLockSupport
+public class AdaptedReadWriteLockNamedLock extends NamedLockSupport
 {
     /**
      * Wrapper for read-write-lock-like stuff, that do not share common ancestor.
@@ -117,8 +116,8 @@ public class AdaptedReadWriteLockNamedLock
 
         /**
          * Step when it was detected that caller already possesses the required lock to given resource. When required
-         * lock step is preceded with a step that already fulfils currently requested locking, no locking is needed.
-         * In other words, caller already possesses the access to lock protected resource. The "nop" locking is used to
+         * lock step is preceded with a step that already fulfils currently requested locking, no locking is needed. In
+         * other words, caller already possesses the access to lock protected resource. The "nop" locking is used to
          * track proper "boxing" of lock/unlock calls.
          */
         NOOP
@@ -128,8 +127,7 @@ public class AdaptedReadWriteLockNamedLock
 
     private final AdaptedReadWriteLock readWriteLock;
 
-    public AdaptedReadWriteLockNamedLock( final String name,
-                                          final NamedLockFactorySupport factory,
+    public AdaptedReadWriteLockNamedLock( final String name, final NamedLockFactorySupport factory,
                                           final AdaptedReadWriteLock readWriteLock )
     {
         super( name, factory );
