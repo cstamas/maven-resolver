@@ -19,15 +19,14 @@ package org.eclipse.aether.internal.impl.synccontext.named;
  * under the License.
  */
 
-import java.util.Collection;
-import java.util.TreeSet;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.metadata.Metadata;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.util.Collection;
+import java.util.TreeSet;
 
 /**
  * Artifact GAV {@link NameMapper}, uses artifact and metadata coordinates to name their corresponding locks. Is not
@@ -35,55 +34,45 @@ import org.eclipse.aether.metadata.Metadata;
  */
 @Singleton
 @Named( GAVNameMapper.NAME )
-public class GAVNameMapper
-    implements NameMapper
+public class GAVNameMapper implements NameMapper
 {
-  public static final String NAME = "gav";
+    public static final String NAME = "gav";
 
-  @Override
-  public TreeSet<String> nameLocks( final RepositorySystemSession session,
-                                    final Collection<? extends Artifact> artifacts,
-                                    final Collection<? extends Metadata> metadatas )
-  {
-    return toGAVNames( artifacts, metadatas );
-  }
-
-  protected TreeSet<String> toGAVNames( final Collection<? extends Artifact> artifacts,
-                                        final Collection<? extends Metadata> metadatas )
-  {
-    // Deadlock prevention: https://stackoverflow.com/a/16780988/696632
-    // We must acquire multiple locks always in the same order!
-    TreeSet<String> keys = new TreeSet<>();
-    if ( artifacts != null )
+    @Override
+    public TreeSet<String> nameLocks( final RepositorySystemSession session, final Collection<? extends Artifact> artifacts, final Collection<? extends Metadata> metadatas )
     {
-      for ( Artifact artifact : artifacts )
-      {
-        String key = "artifact:" + artifact.getGroupId() + ":"
-            + artifact.getArtifactId() + ":" + artifact.getBaseVersion();
-        keys.add( key );
-      }
-    }
-
-    if ( metadatas != null )
-    {
-      for ( Metadata metadata : metadatas )
-      {
-        StringBuilder key = new StringBuilder( "metadata:" );
-        if ( !metadata.getGroupId().isEmpty() )
+        // Deadlock prevention: https://stackoverflow.com/a/16780988/696632
+        // We must acquire multiple locks always in the same order!
+        TreeSet<String> keys = new TreeSet<>();
+        if ( artifacts != null )
         {
-          key.append( metadata.getGroupId() );
-          if ( !metadata.getArtifactId().isEmpty() )
-          {
-            key.append( ':' ).append( metadata.getArtifactId() );
-            if ( !metadata.getVersion().isEmpty() )
+            for ( Artifact artifact : artifacts )
             {
-              key.append( ':' ).append( metadata.getVersion() );
+                String key = "artifact:" + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getBaseVersion();
+                keys.add( key );
             }
-          }
         }
-        keys.add( key.toString() );
-      }
+
+        if ( metadatas != null )
+        {
+            for ( Metadata metadata : metadatas )
+            {
+                StringBuilder key = new StringBuilder( "metadata:" );
+                if ( !metadata.getGroupId().isEmpty() )
+                {
+                    key.append( metadata.getGroupId() );
+                    if ( !metadata.getArtifactId().isEmpty() )
+                    {
+                        key.append( ':' ).append( metadata.getArtifactId() );
+                        if ( !metadata.getVersion().isEmpty() )
+                        {
+                            key.append( ':' ).append( metadata.getVersion() );
+                        }
+                    }
+                }
+                keys.add( key.toString() );
+            }
+        }
+        return keys;
     }
-    return keys;
-  }
 }

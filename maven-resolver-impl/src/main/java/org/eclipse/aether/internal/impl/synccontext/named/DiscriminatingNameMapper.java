@@ -19,6 +19,17 @@ package org.eclipse.aether.internal.impl.synccontext.named;
  * under the License.
  */
 
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.metadata.Metadata;
+import org.eclipse.aether.util.ChecksumUtils;
+import org.eclipse.aether.util.ConfigUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -28,114 +39,99 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.metadata.Metadata;
-import org.eclipse.aether.util.ChecksumUtils;
-import org.eclipse.aether.util.ConfigUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static java.util.stream.Collectors.toList;
 
 /**
- * Discriminating {@link NameMapper}, that wraps another {@link NameMapper} and adds "discriminator" as prefix,
- * that makes lock names unique including local repository (by default). The discriminator may be passed in via
- * {@link RepositorySystemSession} or is automatically calculated based on local repository path.
- *
+ * Discriminating {@link NameMapper}, that wraps another {@link NameMapper} and adds "discriminator" as prefix, that
+ * makes lock names unique including local repository (by default). The discriminator may be passed in via {@link
+ * RepositorySystemSession} or is automatically calculated based on local repository path. The implementation retains
+ * order of collection elements as it got it from {@link NameMapper#nameLocks(RepositorySystemSession, Collection,
+ * Collection)} method.
+ * <p>
  * The default setup wraps {@link GAVNameMapper}, but manually may be created any instance needed.
  */
 @Singleton
 @Named( DiscriminatingNameMapper.NAME )
-public class DiscriminatingNameMapper
-    implements NameMapper
+public class DiscriminatingNameMapper implements NameMapper
 {
-  public static final String NAME = "discriminating";
+    public static final String NAME = "discriminating";
 
-  /**
-   * Configuration property to pass in discriminator.
-   */
-  private static final String CONFIG_PROP_DISCRIMINATOR = "aether.syncContext.named.discriminating.discriminator";
+    /**
+     * Configuration property to pass in discriminator.
+     */
+    private static final String CONFIG_PROP_DISCRIMINATOR = "aether.syncContext.named.discriminating.discriminator";
 
-  /**
-   * Configuration property to pass in hostname.
-   */
-  private static final String CONFIG_PROP_HOSTNAME = "aether.syncContext.named.discriminating.hostname";
+    /**
+     * Configuration property to pass in hostname.
+     */
+    private static final String CONFIG_PROP_HOSTNAME = "aether.syncContext.named.discriminating.hostname";
 
-  private static final String DEFAULT_DISCRIMINATOR_DIGEST = "da39a3ee5e6b4b0d3255bfef95601890afd80709";
+    private static final String DEFAULT_DISCRIMINATOR_DIGEST = "da39a3ee5e6b4b0d3255bfef95601890afd80709";
 
-  private static final String DEFAULT_HOSTNAME = "localhost";
+    private static final String DEFAULT_HOSTNAME = "localhost";
 
-  private final Logger log = LoggerFactory.getLogger( getClass() );
+    private final Logger log = LoggerFactory.getLogger( getClass() );
 
-  private final NameMapper nameMapper;
+    private final NameMapper nameMapper;
 
-  private final String hostname;
+    private final String hostname;
 
-  @Inject
-  public DiscriminatingNameMapper( @Named( GAVNameMapper.NAME ) final NameMapper nameMapper )
-  {
-    this.nameMapper = Objects.requireNonNull( nameMapper );
-    this.hostname = getHostname();
-  }
-
-  @Override
-  public Collection<String> nameLocks( final RepositorySystemSession session,
-                                       final Collection<? extends Artifact> artifacts,
-                                       final Collection<? extends Metadata> metadatas )
-  {
-    String discriminator = createDiscriminator( session );
-    return nameMapper.nameLocks( session, artifacts, metadatas ).stream()
-            .map( s -> discriminator + ":" + s )
-            .collect( toList() );
-  }
-
-  private String getHostname()
-  {
-    try
+    @Inject
+    public DiscriminatingNameMapper( @Named( GAVNameMapper.NAME ) final NameMapper nameMapper )
     {
-      return InetAddress.getLocalHost().getHostName();
+        this.nameMapper = Objects.requireNonNull( nameMapper );
+        this.hostname = getHostname();
     }
-    catch ( UnknownHostException e )
+
+    @Override
+    public Collection<String> nameLocks( final RepositorySystemSession session, final Collection<? extends Artifact> artifacts, final Collection<? extends Metadata> metadatas )
     {
-      log.warn( "Failed to get hostname, using '{}'", DEFAULT_HOSTNAME, e );
-      return DEFAULT_HOSTNAME;
+        String discriminator = createDiscriminator( session );
+        return nameMapper.nameLocks( session, artifacts, metadatas ).stream().map(
+                s -> discriminator + ":" + s ).collect( toList() );
     }
-  }
 
-  private String createDiscriminator( final RepositorySystemSession session )
-  {
-    String discriminator = ConfigUtils.getString( session, null, CONFIG_PROP_DISCRIMINATOR );
-
-    if ( discriminator == null || discriminator.isEmpty() )
+    private String getHostname()
     {
-      String hostname = ConfigUtils.getString( session, this.hostname, CONFIG_PROP_HOSTNAME );
-      File basedir = session.getLocalRepository().getBasedir();
-      discriminator = hostname + ":" + basedir;
-      try
-      {
-        Map<String, Object> checksums = ChecksumUtils.calc(
-            discriminator.getBytes( StandardCharsets.UTF_8 ),
-            Collections.singletonList( "SHA-1" ) );
-        Object checksum = checksums.get( "SHA-1" );
-
-        if ( checksum instanceof Exception )
+        try
         {
-          throw ( Exception ) checksum;
+            return InetAddress.getLocalHost().getHostName();
         }
-
-        return String.valueOf( checksum );
-      }
-      catch ( Exception e )
-      {
-        log.warn( "Failed to calculate discriminator digest, using '{}'", DEFAULT_DISCRIMINATOR_DIGEST, e );
-        return DEFAULT_DISCRIMINATOR_DIGEST;
-      }
+        catch ( UnknownHostException e )
+        {
+            log.warn( "Failed to get hostname, using '{}'", DEFAULT_HOSTNAME, e );
+            return DEFAULT_HOSTNAME;
+        }
     }
-    return discriminator;
-  }
+
+    private String createDiscriminator( final RepositorySystemSession session )
+    {
+        String discriminator = ConfigUtils.getString( session, null, CONFIG_PROP_DISCRIMINATOR );
+
+        if ( discriminator == null || discriminator.isEmpty() )
+        {
+            String hostname = ConfigUtils.getString( session, this.hostname, CONFIG_PROP_HOSTNAME );
+            File basedir = session.getLocalRepository().getBasedir();
+            discriminator = hostname + ":" + basedir;
+            try
+            {
+                Map<String, Object> checksums = ChecksumUtils.calc( discriminator.getBytes( StandardCharsets.UTF_8 ),
+                        Collections.singletonList( "SHA-1" ) );
+                Object checksum = checksums.get( "SHA-1" );
+
+                if ( checksum instanceof Exception )
+                {
+                    throw (Exception) checksum;
+                }
+
+                return String.valueOf( checksum );
+            }
+            catch ( Exception e )
+            {
+                log.warn( "Failed to calculate discriminator digest, using '{}'", DEFAULT_DISCRIMINATOR_DIGEST, e );
+                return DEFAULT_DISCRIMINATOR_DIGEST;
+            }
+        }
+        return discriminator;
+    }
 }

@@ -33,66 +33,60 @@ import java.util.TreeSet;
  * A {@link NameMapper} that creates same name mapping as Takari Local Repository does, without baseDir (local repo).
  * Part of code blatantly copies parts of the Takari {@code LockingSyncContext}.
  *
- * @see <a href="https://github.com/takari/takari-local-repository/blob/master/src/main/java/io/takari/aether/concurrency/LockingSyncContext.java">Takari LockingSyncContext.java</a>
+ * @see <a href="https://github.com/takari/takari-local-repository/blob/master/src/main/java/io/takari/aether/concurrency/LockingSyncContext.java">Takari
+ * LockingSyncContext.java</a>
  */
 @Singleton
 @Named( TakariNameMapper.NAME )
-public class TakariNameMapper
-    implements NameMapper
+public class TakariNameMapper implements NameMapper
 {
-  public static final String NAME = "takari";
+    public static final String NAME = "takari";
 
-  private static final char SEPARATOR = '~';
+    private static final char SEPARATOR = '~';
 
-  @Override
-  public Collection<String> nameLocks( final RepositorySystemSession session,
-                                       final Collection<? extends Artifact> artifacts,
-                                       final Collection<? extends Metadata> metadatas )
-  {
-    TreeSet<String> paths = new TreeSet<>();
-    if ( artifacts != null )
+    @Override
+    public TreeSet<String> nameLocks( final RepositorySystemSession session, final Collection<? extends Artifact> artifacts, final Collection<? extends Metadata> metadatas )
     {
-      for ( Artifact artifact : artifacts )
-      {
-        paths.add( getPath( artifact ) + ".aetherlock" );
-      }
-    }
-    if ( metadatas != null )
-    {
-      for ( Metadata metadata : metadatas )
-      {
-        paths.add( getPath( metadata ) + ".aetherlock" );
-      }
-    }
-    return paths;
-  }
-
-  private String getPath( final Artifact artifact )
-  {
-    // NOTE: Don't use LRM.getPath*() as those paths could be different across processes, e.g. due to staging LRMs.
-    return artifact.getGroupId()
-            + SEPARATOR
-            + artifact.getArtifactId()
-            + SEPARATOR
-            + artifact.getBaseVersion();
-  }
-
-  private String getPath( final Metadata metadata )
-  {
-    // NOTE: Don't use LRM.getPath*() as those paths could be different across processes, e.g. due to staging.
-    String path = "";
-    if ( metadata.getGroupId().length() > 0 )
-    {
-      path += metadata.getGroupId();
-      if ( metadata.getArtifactId().length() > 0 )
-      {
-        path += SEPARATOR + metadata.getArtifactId();
-        if ( metadata.getVersion().length() > 0 )
+        TreeSet<String> paths = new TreeSet<>();
+        if ( artifacts != null )
         {
-          path += SEPARATOR + metadata.getVersion();
+            for ( Artifact artifact : artifacts )
+            {
+                paths.add( getPath( artifact ) + ".aetherlock" );
+            }
         }
-      }
+        if ( metadatas != null )
+        {
+            for ( Metadata metadata : metadatas )
+            {
+                paths.add( getPath( metadata ) + ".aetherlock" );
+            }
+        }
+        return paths;
     }
-    return path;
-  }
+
+    private String getPath( final Artifact artifact )
+    {
+        // NOTE: Don't use LRM.getPath*() as those paths could be different across processes, e.g. due to staging LRMs.
+        return artifact.getGroupId() + SEPARATOR + artifact.getArtifactId() + SEPARATOR + artifact.getBaseVersion();
+    }
+
+    private String getPath( final Metadata metadata )
+    {
+        // NOTE: Don't use LRM.getPath*() as those paths could be different across processes, e.g. due to staging.
+        String path = "";
+        if ( metadata.getGroupId().length() > 0 )
+        {
+            path += metadata.getGroupId();
+            if ( metadata.getArtifactId().length() > 0 )
+            {
+                path += SEPARATOR + metadata.getArtifactId();
+                if ( metadata.getVersion().length() > 0 )
+                {
+                    path += SEPARATOR + metadata.getVersion();
+                }
+            }
+        }
+        return path;
+    }
 }
