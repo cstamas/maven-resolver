@@ -44,7 +44,7 @@ public abstract class RedissonNamedLockFactorySupport
 
   private static final String DEFAULT_CLIENT_NAME = "maven-resolver";
 
-  private static final String CONFIG_PROP_CONFIG_FILE = "aether.syncContext.redisson.configFile";
+  private static final String CONFIG_PROP_CONFIG_FILE = "aether.syncContext.named.redisson.configFile";
 
   protected final RedissonClient redissonClient;
 
