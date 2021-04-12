@@ -56,7 +56,7 @@ public final class NamedSyncContextFactory
     );
 
     private static final String NAME_MAPPER = System.getProperty(
-        "aether.syncContext.named.nameMapper", DiscriminatingNameMapper.NAME
+        "aether.syncContext.named.nameMapper", GAVNameMapper.NAME
     );
 
     private static final long TIMEOUT = Long.getLong(
