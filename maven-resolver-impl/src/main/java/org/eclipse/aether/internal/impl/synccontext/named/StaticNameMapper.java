@@ -19,60 +19,56 @@ package org.eclipse.aether.internal.impl.synccontext.named;
  * under the License.
  */
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.metadata.Metadata;
 import org.eclipse.aether.util.ConfigUtils;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 
 /**
  * Static {@link NameMapper}, always assigns one same name, effectively becoming equivalent to "static" sync context.
  */
 @Singleton
 @Named( StaticNameMapper.NAME )
-public class StaticNameMapper
-    implements NameMapper
+public class StaticNameMapper implements NameMapper
 {
-  public static final String NAME = "static";
+    public static final String NAME = "static";
 
-  /**
-   * Configuration property to pass in static name.
-   */
-  private static final String CONFIG_PROP_NAME = "aether.syncContext.named.static.name";
+    /**
+     * Configuration property to pass in static name.
+     */
+    private static final String CONFIG_PROP_NAME = "aether.syncContext.named.static.name";
 
-  private final String name;
+    private final String name;
 
-  /**
-   * Uses string {@code "static"} for the static name.
-   */
-  @Inject
-  public StaticNameMapper()
-  {
-    this( NAME );
-  }
+    /**
+     * Uses string {@code "static"} for the static name.
+     */
+    @Inject
+    public StaticNameMapper()
+    {
+        this( NAME );
+    }
 
-  /**
-   * Uses passed in non-{@code null} string for the static name.
-   */
-  public StaticNameMapper( final String name )
-  {
-    this.name = Objects.requireNonNull( name );
-  }
+    /**
+     * Uses passed in non-{@code null} string for the static name.
+     */
+    public StaticNameMapper( final String name )
+    {
+        this.name = Objects.requireNonNull( name );
+    }
 
-  @Override
-  public Collection<String> nameLocks( final RepositorySystemSession session,
-                                       final Collection<? extends Artifact> artifacts,
-                                       final Collection<? extends Metadata> metadatas )
-  {
-    return Collections.singletonList(
-            ConfigUtils.getString( session, name, CONFIG_PROP_NAME )
-    );
-  }
+    @Override
+    public Collection<String> nameLocks( final RepositorySystemSession session,
+                                         final Collection<? extends Artifact> artifacts,
+                                         final Collection<? extends Metadata> metadatas )
+    {
+        return Collections.singletonList( ConfigUtils.getString( session, name, CONFIG_PROP_NAME ) );
+    }
 }

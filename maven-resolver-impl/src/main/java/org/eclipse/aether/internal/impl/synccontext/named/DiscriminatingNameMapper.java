@@ -84,11 +84,13 @@ public class DiscriminatingNameMapper implements NameMapper
     }
 
     @Override
-    public Collection<String> nameLocks( final RepositorySystemSession session, final Collection<? extends Artifact> artifacts, final Collection<? extends Metadata> metadatas )
+    public Collection<String> nameLocks( final RepositorySystemSession session,
+                                         final Collection<? extends Artifact> artifacts,
+                                         final Collection<? extends Metadata> metadatas )
     {
         String discriminator = createDiscriminator( session );
-        return nameMapper.nameLocks( session, artifacts, metadatas ).stream().map(
-                s -> discriminator + ":" + s ).collect( toList() );
+        return nameMapper.nameLocks( session, artifacts, metadatas ).stream().map( s -> discriminator + ":" + s )
+                         .collect( toList() );
     }
 
     private String getHostname()
@@ -115,8 +117,8 @@ public class DiscriminatingNameMapper implements NameMapper
             discriminator = hostname + ":" + basedir;
             try
             {
-                Map<String, Object> checksums = ChecksumUtils.calc( discriminator.getBytes( StandardCharsets.UTF_8 ),
-                        Collections.singletonList( "SHA-1" ) );
+                Map<String, Object> checksums = ChecksumUtils
+                        .calc( discriminator.getBytes( StandardCharsets.UTF_8 ), Collections.singletonList( "SHA-1" ) );
                 Object checksum = checksums.get( "SHA-1" );
 
                 if ( checksum instanceof Exception )

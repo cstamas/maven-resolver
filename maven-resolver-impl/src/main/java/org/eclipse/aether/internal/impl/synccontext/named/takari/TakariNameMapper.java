@@ -45,7 +45,9 @@ public class TakariNameMapper implements NameMapper
     private static final char SEPARATOR = '~';
 
     @Override
-    public TreeSet<String> nameLocks( final RepositorySystemSession session, final Collection<? extends Artifact> artifacts, final Collection<? extends Metadata> metadatas )
+    public TreeSet<String> nameLocks( final RepositorySystemSession session,
+                                      final Collection<? extends Artifact> artifacts,
+                                      final Collection<? extends Metadata> metadatas )
     {
         TreeSet<String> paths = new TreeSet<>();
         if ( artifacts != null )

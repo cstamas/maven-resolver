@@ -31,39 +31,38 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 /**
- * A {@link SessionAwareNamedLockFactory} that uses same advisory file locking as Takari Local Repository does.
- * Part of code blatantly copies parts of the Takari {@code LockingSyncContext} and {@code DefaultFileManager}.
+ * A {@link SessionAwareNamedLockFactory} that uses same advisory file locking as Takari Local Repository does. Part of
+ * code blatantly copies parts of the Takari {@code LockingSyncContext} and {@code DefaultFileManager}.
  *
- * @see <a href="https://github.com/takari/takari-local-repository/blob/master/src/main/java/io/takari/aether/concurrency/LockingSyncContext.java">Takari LockingSyncContext.java</a>
- * @see <a href="https://github.com/takari/takari-local-repository/blob/master/src/main/java/io/takari/filemanager/internal/DefaultFileManager.java">Takari DefaultFileManager.java</a>
+ * @see <a href="https://github.com/takari/takari-local-repository/blob/master/src/main/java/io/takari/aether/concurrency/LockingSyncContext.java">Takari
+ * LockingSyncContext.java</a>
+ * @see <a href="https://github.com/takari/takari-local-repository/blob/master/src/main/java/io/takari/filemanager/internal/DefaultFileManager.java">Takari
+ * DefaultFileManager.java</a>
  */
 @Singleton
 @Named( TakariNamedLockFactory.NAME )
-public class TakariNamedLockFactory
-        extends FileLockNamedLockFactory
-        implements SessionAwareNamedLockFactory
+public class TakariNamedLockFactory extends FileLockNamedLockFactory implements SessionAwareNamedLockFactory
 {
-  public static final String NAME = "takari";
+    public static final String NAME = "takari";
 
-  @Override
-  public NamedLockSupport getLock( final RepositorySystemSession session, final String name )
-  {
-    try
+    @Override
+    public NamedLockSupport getLock( final RepositorySystemSession session, final String name )
     {
-      String fileName = new File(
-              new File( session.getLocalRepository().getBasedir(), ".locks" ), name
-      ).getCanonicalFile().getPath();
-      return super.getLock( fileName );
+        try
+        {
+            String fileName = new File( new File( session.getLocalRepository().getBasedir(), ".locks" ), name )
+                    .getCanonicalFile().getPath();
+            return super.getLock( fileName );
+        }
+        catch ( IOException e )
+        {
+            throw new UncheckedIOException( e );
+        }
     }
-    catch ( IOException e )
-    {
-      throw new UncheckedIOException( e );
-    }
-  }
 
-  @Override
-  public NamedLockSupport getLock( final String filename )
-  {
-    throw new IllegalStateException( "This factory is session aware" );
-  }
+    @Override
+    public NamedLockSupport getLock( final String filename )
+    {
+        throw new IllegalStateException( "This factory is session aware" );
+    }
 }

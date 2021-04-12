@@ -19,24 +19,24 @@ package org.eclipse.aether.internal.impl.synccontext.named;
  * under the License.
  */
 
-import java.util.Collection;
-
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.metadata.Metadata;
+
+import java.util.Collection;
 
 /**
  * Component mapping lock names to passed in artifacts and metadata as required.
  */
 public interface NameMapper
 {
-  /**
-   * Creates (opaque) names for passed in artifacts and metadata. Returned collection has max size of sum of the passed
-   * in artifacts and metadata collections, or less. If empty collection returned, there will be no locking happening.
-   * Never returns {@code null}. The resulting collection MUST BE "stable" (always sorted by same criteria) to avoid
-   * deadlocks by acquiring locks in same order, essentially disregarding the order of the input collections.
-   */
-  Collection<String> nameLocks( RepositorySystemSession session,
-                                Collection<? extends Artifact> artifacts,
-                                Collection<? extends Metadata> metadatas );
+    /**
+     * Creates (opaque) names for passed in artifacts and metadata. Returned collection has max size of sum of the
+     * passed in artifacts and metadata collections, or less. If empty collection returned, there will be no locking
+     * happening. Never returns {@code null}. The resulting collection MUST BE "stable" (always sorted by same criteria)
+     * to avoid deadlocks by acquiring locks in same order, essentially disregarding the order of the input
+     * collections.
+     */
+    Collection<String> nameLocks( RepositorySystemSession session, Collection<? extends Artifact> artifacts,
+                                  Collection<? extends Metadata> metadatas );
 }

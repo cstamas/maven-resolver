@@ -28,13 +28,13 @@ import org.eclipse.aether.named.NamedLockFactory;
  */
 public interface SessionAwareNamedLockFactory extends NamedLockFactory
 {
-  /**
-   * Creates or reuses existing {@link NamedLock}. Returns instance MUST BE treated as "resource", best in
-   * try-with-resource block.
-   *
-   * @param session The repository system session, must not be {@code null}.
-   * @param name the lock name, must not be {@code null}.
-   * @return named lock instance, never {@code null}.
-   */
-  NamedLock getLock( RepositorySystemSession session, String name );
+    /**
+     * Creates or reuses existing {@link NamedLock}. Returns instance MUST BE treated as "resource", best in
+     * try-with-resource block.
+     *
+     * @param session The repository system session, must not be {@code null}.
+     * @param name    the lock name, must not be {@code null}.
+     * @return named lock instance, never {@code null}.
+     */
+    NamedLock getLock( RepositorySystemSession session, String name );
 }

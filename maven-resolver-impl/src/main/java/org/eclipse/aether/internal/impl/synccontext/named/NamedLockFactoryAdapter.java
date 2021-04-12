@@ -46,10 +46,8 @@ public final class NamedLockFactoryAdapter
 
     private final TimeUnit timeUnit;
 
-    public NamedLockFactoryAdapter( final NameMapper nameMapper,
-                                    final NamedLockFactory namedLockFactory,
-                                    final long time,
-                                    final TimeUnit timeUnit )
+    public NamedLockFactoryAdapter( final NameMapper nameMapper, final NamedLockFactory namedLockFactory,
+                                    final long time, final TimeUnit timeUnit )
     {
         this.nameMapper = Objects.requireNonNull( nameMapper );
         this.namedLockFactory = Objects.requireNonNull( namedLockFactory );
@@ -63,13 +61,7 @@ public final class NamedLockFactoryAdapter
 
     public SyncContext newInstance( final RepositorySystemSession session, final boolean shared )
     {
-        return new AdaptedLockSyncContext(
-                session,
-                shared,
-                nameMapper,
-                namedLockFactory,
-                time,
-                timeUnit );
+        return new AdaptedLockSyncContext( session, shared, nameMapper, namedLockFactory, time, timeUnit );
     }
 
     public void shutdown()
@@ -77,8 +69,7 @@ public final class NamedLockFactoryAdapter
         namedLockFactory.shutdown();
     }
 
-    private static class AdaptedLockSyncContext
-            implements SyncContext
+    private static class AdaptedLockSyncContext implements SyncContext
     {
         private static final Logger LOGGER = LoggerFactory.getLogger( AdaptedLockSyncContext.class );
 
@@ -98,19 +89,15 @@ public final class NamedLockFactoryAdapter
 
         private final ArrayDeque<NamedLock> locks;
 
-        private AdaptedLockSyncContext( final RepositorySystemSession session,
-                                        final boolean shared,
-                                        final NameMapper lockNaming,
-                                        final NamedLockFactory namedLockFactory,
-                                        final long timeOut,
-                                        final TimeUnit timeUnit )
+        private AdaptedLockSyncContext( final RepositorySystemSession session, final boolean shared,
+                                        final NameMapper lockNaming, final NamedLockFactory namedLockFactory,
+                                        final long timeOut, final TimeUnit timeUnit )
         {
             this.session = session;
             this.shared = shared;
             this.lockNaming = lockNaming;
             this.sessionAwareNamedLockFactory = namedLockFactory instanceof SessionAwareNamedLockFactory
-                    ? (SessionAwareNamedLockFactory) namedLockFactory
-                    : null;
+                    ? (SessionAwareNamedLockFactory) namedLockFactory : null;
             this.namedLockFactory = namedLockFactory;
             this.timeOut = timeOut;
             this.timeUnit = timeUnit;
@@ -118,8 +105,7 @@ public final class NamedLockFactoryAdapter
         }
 
         @Override
-        public void acquire( Collection<? extends Artifact> artifacts,
-                             Collection<? extends Metadata> metadatas )
+        public void acquire( Collection<? extends Artifact> artifacts, Collection<? extends Metadata> metadatas )
         {
             Collection<String> keys = lockNaming.nameLocks( session, artifacts, metadatas );
             if ( keys.isEmpty() )
@@ -131,9 +117,8 @@ public final class NamedLockFactoryAdapter
             int acquiredLockCount = 0;
             for ( String key : keys )
             {
-                NamedLock namedLock = sessionAwareNamedLockFactory != null
-                        ? sessionAwareNamedLockFactory.getLock( session, key )
-                        : namedLockFactory.getLock( key );
+                NamedLock namedLock = sessionAwareNamedLockFactory != null ? sessionAwareNamedLockFactory
+                        .getLock( session, key ) : namedLockFactory.getLock( key );
                 try
                 {
                     boolean locked;
@@ -149,8 +134,8 @@ public final class NamedLockFactoryAdapter
                     if ( !locked )
                     {
                         namedLock.close();
-                        throw new IllegalStateException( "Could not lock "
-                                + namedLock.name() + " (shared=" + shared + ")" );
+                        throw new IllegalStateException(
+                                "Could not lock " + namedLock.name() + " (shared=" + shared + ")" );
                     }
 
                     locks.push( namedLock );

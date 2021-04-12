@@ -39,7 +39,9 @@ public class GAVNameMapper implements NameMapper
     public static final String NAME = "gav";
 
     @Override
-    public TreeSet<String> nameLocks( final RepositorySystemSession session, final Collection<? extends Artifact> artifacts, final Collection<? extends Metadata> metadatas )
+    public TreeSet<String> nameLocks( final RepositorySystemSession session,
+                                      final Collection<? extends Artifact> artifacts,
+                                      final Collection<? extends Metadata> metadatas )
     {
         // Deadlock prevention: https://stackoverflow.com/a/16780988/696632
         // We must acquire multiple locks always in the same order!
@@ -48,7 +50,9 @@ public class GAVNameMapper implements NameMapper
         {
             for ( Artifact artifact : artifacts )
             {
-                String key = "artifact:" + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getBaseVersion();
+                String key = "artifact:" + artifact.getGroupId()
+                             + ":" + artifact.getArtifactId()
+                             + ":" + artifact.getBaseVersion();
                 keys.add( key );
             }
         }
