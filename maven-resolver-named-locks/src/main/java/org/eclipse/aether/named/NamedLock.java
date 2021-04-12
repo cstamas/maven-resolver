@@ -65,7 +65,10 @@ public interface NamedLock extends AutoCloseable
     void unlock();
 
     /**
-     * Closes the lock resource. Lock MUST be unlocked using {@link #unlock()} in case any locking happened on it.
+     * Closes the lock resource. Lock MUST be unlocked using {@link #unlock()} in case any locking happened on it. After
+     * invoking this method, the lock instance MUST NOT be used anymore. If lock for same name needed, a new instance
+     * should be obtained from factory using {@link NamedLockFactory#getLock(String)}. Ideally, instances are to be used
+     * within try-with-resource blocks, so calling this method directly is not really needed, nor advised.
      */
     @Override
     void close();
