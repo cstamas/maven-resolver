@@ -41,6 +41,23 @@ public class AdaptedSemaphoreNamedLock
         void release( int perms );
     }
 
+    /**
+     * Count of permissions involved with "nop" locking. When required lock step is preceded with a step that already
+     * fulfils currently requested locking, no locking is needed. In other words, caller already possesses the access
+     * to lock protected resource. The "nop" locking is use to track proper "boxing" of lock/unlock calls.
+     */
+    private static final int NONE = 0;
+
+    /**
+     * Count of permissions involved with shared locking.
+     */
+    private static final int SHARED = 1;
+
+    /**
+     * Count of permissions involved with exclusive locking.
+     */
+    private static final int EXCLUSIVE = Integer.MAX_VALUE;
+
     private final ThreadLocal<Deque<Integer>> threadPerms;
 
     private final AdaptedSemaphore semaphore;
@@ -60,12 +77,12 @@ public class AdaptedSemaphoreNamedLock
         Deque<Integer> perms = threadPerms.get();
         if ( !perms.isEmpty() )
         { // we already own shared or exclusive lock
-            perms.push( 0 );
+            perms.push( NONE );
             return true;
         }
-        if ( semaphore.tryAcquire( 1, time, unit ) )
+        if ( semaphore.tryAcquire( SHARED, time, unit ) )
         {
-            perms.push( 1 );
+            perms.push( SHARED );
             return true;
         }
         return false;
@@ -77,9 +94,9 @@ public class AdaptedSemaphoreNamedLock
         Deque<Integer> perms = threadPerms.get();
         if ( !perms.isEmpty() )
         { // we already own shared or exclusive lock
-            if ( perms.contains( Integer.MAX_VALUE ) )
+            if ( perms.contains( EXCLUSIVE ) )
             {
-                perms.push( 0 );
+                perms.push( NONE );
                 return true;
             }
             else
@@ -87,9 +104,9 @@ public class AdaptedSemaphoreNamedLock
                 return false; // Lock upgrade not supported
             }
         }
-        if ( semaphore.tryAcquire( Integer.MAX_VALUE, time, unit ) )
+        if ( semaphore.tryAcquire( EXCLUSIVE, time, unit ) )
         {
-            perms.push( Integer.MAX_VALUE );
+            perms.push( EXCLUSIVE );
             return true;
         }
         return false;

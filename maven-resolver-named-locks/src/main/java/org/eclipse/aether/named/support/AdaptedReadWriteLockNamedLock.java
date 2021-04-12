@@ -105,7 +105,23 @@ public class AdaptedReadWriteLockNamedLock
 
     private enum Step
     {
-        SHARED, EXCLUSIVE, NOOP
+        /**
+         * Step when {@link AdaptedReadWriteLock#lockShared(long, TimeUnit)} was invoked.
+         */
+        SHARED,
+
+        /**
+         * Step when {@link AdaptedReadWriteLock#lockExclusively(long, TimeUnit)} was invoked.
+         */
+        EXCLUSIVE,
+
+        /**
+         * Step when it was detected that caller already possesses the required lock to given resource. When required
+         * lock step is preceded with a step that already fulfils currently requested locking, no locking is needed.
+         * In other words, caller already possesses the access to lock protected resource. The "nop" locking is use to
+         * track proper "boxing" of lock/unlock calls.
+         */
+        NOOP
     }
 
     private final ThreadLocal<Deque<Step>> threadSteps;
