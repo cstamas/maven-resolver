@@ -24,17 +24,17 @@ package org.eclipse.aether.named;
  */
 public interface NamedLockFactory
 {
-  /**
-   * Creates or reuses existing {@link NamedLock}. Returns instance MUST BE treated as "resource", best in
-   * try-with-resource block.
-   *
-   * @param name the lock name, must not be {@code null}.
-   * @return named lock instance, never {@code null}.
-   */
-  NamedLock getLock( String name );
+    /**
+     * Creates or reuses existing {@link NamedLock}. Returns instance MUST BE treated as "resource", best in
+     * try-with-resource block.
+     *
+     * @param name the lock name, must not be {@code null}.
+     * @return named lock instance, never {@code null}.
+     */
+    NamedLock getLock( String name );
 
-  /**
-   * Performs a clean shut down of the factory.
-   */
-  void shutdown();
+    /**
+     * Performs a clean shut down of the factory.
+     */
+    void shutdown();
 }
