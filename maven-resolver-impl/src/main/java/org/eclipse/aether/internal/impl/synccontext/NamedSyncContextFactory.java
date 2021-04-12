@@ -55,15 +55,15 @@ public final class NamedSyncContextFactory
             "aether.syncContext.named.factory", LocalReadWriteLockNamedLockFactory.NAME
     );
 
-    private static final String NAME_MAPPING = System.getProperty(
-        "aether.syncContext.named.nameMapping", DiscriminatingNameMapper.NAME
+    private static final String NAME_MAPPER = System.getProperty(
+        "aether.syncContext.named.nameMapper", DiscriminatingNameMapper.NAME
     );
 
-    private static final long TIME_OUT = Long.getLong(
+    private static final long TIMEOUT = Long.getLong(
             "aether.syncContext.named.timeout", 30L
     );
 
-    private static final TimeUnit TIME_UNIT = TimeUnit.valueOf( System.getProperty(
+    private static final TimeUnit TIMEOUT_UNIT = TimeUnit.valueOf( System.getProperty(
             "aether.syncContext.named.timeout.unit", TimeUnit.SECONDS.name()
     ) );
 
@@ -99,10 +99,10 @@ public final class NamedSyncContextFactory
     private static NamedLockFactoryAdapter selectAndAdapt( final Map<String, NameMapper> nameMappers,
                                                            final Map<String, NamedLockFactory> factories )
     {
-        NameMapper nameMapper = nameMappers.get( NAME_MAPPING );
+        NameMapper nameMapper = nameMappers.get( NAME_MAPPER );
         if ( nameMapper == null )
         {
-            throw new IllegalArgumentException( "Unknown NameMapper name: " + NAME_MAPPING
+            throw new IllegalArgumentException( "Unknown NameMapper name: " + NAME_MAPPER
                 + ", known ones: " + nameMappers.keySet() );
         }
         NamedLockFactory factory = factories.get( FACTORY_NAME );
@@ -111,7 +111,7 @@ public final class NamedSyncContextFactory
             throw new IllegalArgumentException( "Unknown NamedLockFactory name: " + FACTORY_NAME
                     + ", known ones: " + factories.keySet() );
         }
-        return new NamedLockFactoryAdapter( nameMapper, factory, TIME_OUT, TIME_UNIT );
+        return new NamedLockFactoryAdapter( nameMapper, factory, TIMEOUT, TIMEOUT_UNIT );
     }
 
     @Override
