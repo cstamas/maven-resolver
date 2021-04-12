@@ -118,7 +118,7 @@ public class AdaptedReadWriteLockNamedLock
         /**
          * Step when it was detected that caller already possesses the required lock to given resource. When required
          * lock step is preceded with a step that already fulfils currently requested locking, no locking is needed.
-         * In other words, caller already possesses the access to lock protected resource. The "nop" locking is use to
+         * In other words, caller already possesses the access to lock protected resource. The "nop" locking is used to
          * track proper "boxing" of lock/unlock calls.
          */
         NOOP
