@@ -27,7 +27,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
- * Named lock support implementation that is using {@link ReadWriteLock} instances.
+ * Named lock support implementation that is using {@link AdaptedReadWriteLock} instances. The adapted lock MUST SUPPORT
+ * reentrancy, non re-entrant locks are NOT supported. It is responsibility of one adapting lock, to make sure that
+ * above lock requirement stands.
  */
 public class AdaptedReadWriteLockNamedLock extends NamedLockSupport
 {
@@ -112,15 +114,7 @@ public class AdaptedReadWriteLockNamedLock extends NamedLockSupport
         /**
          * Step when {@link AdaptedReadWriteLock#lockExclusively(long, TimeUnit)} was invoked.
          */
-        EXCLUSIVE,
-
-        /**
-         * Step when it was detected that caller already possesses the required lock to given resource. When required
-         * lock step is preceded with a step that already fulfils currently requested locking, no locking is needed. In
-         * other words, caller already possesses the access to lock protected resource. The "nop" locking is used to
-         * track proper "boxing" of lock/unlock calls.
-         */
-        NOOP
+        EXCLUSIVE
     }
 
     private final ThreadLocal<Deque<Step>> threadSteps;
@@ -139,11 +133,6 @@ public class AdaptedReadWriteLockNamedLock extends NamedLockSupport
     public boolean lockShared( final long time, final TimeUnit unit ) throws InterruptedException
     {
         Deque<Step> steps = threadSteps.get();
-        if ( !steps.isEmpty() )
-        { // we already own shared or exclusive lock
-            steps.push( Step.NOOP );
-            return true;
-        }
         if ( readWriteLock.readLock().tryLock( time, unit ) )
         {
             steps.push( Step.SHARED );
@@ -158,12 +147,7 @@ public class AdaptedReadWriteLockNamedLock extends NamedLockSupport
         Deque<Step> steps = threadSteps.get();
         if ( !steps.isEmpty() )
         { // we already own shared or exclusive lock
-            if ( steps.contains( Step.EXCLUSIVE ) )
-            {
-                steps.push( Step.NOOP );
-                return true;
-            }
-            else
+            if ( !steps.contains( Step.EXCLUSIVE ) )
             {
                 return false; // Lock upgrade not supported
             }
