@@ -21,108 +21,35 @@ package org.eclipse.aether.named.support;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
- * Named lock support implementation that is using {@link AdaptedReadWriteLock} instances. The adapted lock MUST SUPPORT
- * reentrancy, non re-entrant locks are NOT supported. It is responsibility of one adapting lock, to make sure that
+ * Named lock support implementation that is using {@link ReadWriteLock} instances. The adapted lock MUST SUPPORT
+ * reentrancy, non re-entrant locks will NOT work. It is responsibility of one adapting lock, to ensure that
  * above lock requirement stands.
  */
-public class AdaptedReadWriteLockNamedLock extends NamedLockSupport
+public class ReadWriteLockNamedLock extends NamedLockSupport
 {
-    /**
-     * Wrapper for read-write-lock-like stuff, that do not share common ancestor.
-     */
-    public interface AdaptedReadWriteLock
-    {
-        AdaptedLock readLock();
-
-        AdaptedLock writeLock();
-    }
-
-    /**
-     * Wrapper for lock-like stuff, that do not share common ancestor.
-     */
-    public interface AdaptedLock
-    {
-        boolean tryLock( long time, TimeUnit unit ) throws InterruptedException;
-
-        void unlock();
-    }
-
-    /**
-     * Adapter for read-write-locks descending from Java {@link ReadWriteLock}.
-     */
-    public static final class JVMReadWriteLock implements AdaptedReadWriteLock
-    {
-        private final JVMLock readLock;
-
-        private final JVMLock writeLock;
-
-        public JVMReadWriteLock( final ReadWriteLock readWriteLock )
-        {
-            Objects.requireNonNull( readWriteLock );
-            this.readLock = new JVMLock( readWriteLock.readLock() );
-            this.writeLock = new JVMLock( readWriteLock.writeLock() );
-        }
-
-        @Override
-        public AdaptedLock readLock()
-        {
-            return readLock;
-        }
-
-        @Override
-        public AdaptedLock writeLock()
-        {
-            return writeLock;
-        }
-    }
-
-    private static final class JVMLock implements AdaptedLock
-    {
-        private final Lock lock;
-
-        private JVMLock( final Lock lock )
-        {
-            this.lock = lock;
-        }
-
-        @Override
-        public boolean tryLock( final long time, final TimeUnit unit ) throws InterruptedException
-        {
-            return lock.tryLock( time, unit );
-        }
-
-        @Override
-        public void unlock()
-        {
-            lock.unlock();
-        }
-    }
-
     private enum Step
     {
         /**
-         * Step when {@link AdaptedReadWriteLock#lockShared(long, TimeUnit)} was invoked.
+         * Step when {@link ReadWriteLock#readLock()} was locked.
          */
         SHARED,
 
         /**
-         * Step when {@link AdaptedReadWriteLock#lockExclusively(long, TimeUnit)} was invoked.
+         * Step when {@link ReadWriteLock#writeLock()} was locked.
          */
         EXCLUSIVE
     }
 
     private final ThreadLocal<Deque<Step>> threadSteps;
 
-    private final AdaptedReadWriteLock readWriteLock;
+    private final ReadWriteLock readWriteLock;
 
-    public AdaptedReadWriteLockNamedLock( final String name, final NamedLockFactorySupport factory,
-                                          final AdaptedReadWriteLock readWriteLock )
+    public ReadWriteLockNamedLock( final String name, final NamedLockFactorySupport factory,
+                                   final ReadWriteLock readWriteLock )
     {
         super( name, factory );
         this.threadSteps = ThreadLocal.withInitial( ArrayDeque::new );

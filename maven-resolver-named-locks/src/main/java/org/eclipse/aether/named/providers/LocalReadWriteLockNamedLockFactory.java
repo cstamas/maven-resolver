@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.eclipse.aether.named.support.AdaptedReadWriteLockNamedLock;
+import org.eclipse.aether.named.support.ReadWriteLockNamedLock;
 import org.eclipse.aether.named.support.NamedLockFactorySupport;
 
 /**
@@ -38,12 +38,12 @@ public class LocalReadWriteLockNamedLockFactory
   public static final String NAME = "rwlock-local";
 
   @Override
-  protected AdaptedReadWriteLockNamedLock createLock( final String name )
+  protected ReadWriteLockNamedLock createLock( final String name )
   {
-    return new AdaptedReadWriteLockNamedLock(
+    return new ReadWriteLockNamedLock(
         name,
         this,
-        new AdaptedReadWriteLockNamedLock.JVMReadWriteLock( new ReentrantReadWriteLock() )
+        new ReentrantReadWriteLock()
     );
   }
 }
