@@ -35,36 +35,36 @@ import java.util.concurrent.TimeUnit;
 public class RedissonSemaphoreNamedLockFactory
     extends RedissonNamedLockFactorySupport
 {
-  public static final String NAME = "semaphore-redisson";
+    public static final String NAME = "semaphore-redisson";
 
-  @Override
-  protected NamedLockSupport createLock( final String name )
-  {
-    return new AdaptedSemaphoreNamedLock(
-            name, this, new RedissonSemaphore( redissonClient.getSemaphore( NAME_PREFIX + name ) )
+    @Override
+    protected NamedLockSupport createLock( final String name )
+    {
+        return new AdaptedSemaphoreNamedLock(
+                   name, this, new RedissonSemaphore( redissonClient.getSemaphore( NAME_PREFIX + name ) )
     );
-  }
-
-  private static final class RedissonSemaphore implements AdaptedSemaphoreNamedLock.AdaptedSemaphore
-  {
-    private final RSemaphore semaphore;
-
-    private RedissonSemaphore( final RSemaphore semaphore )
-    {
-      semaphore.addPermits( Integer.MAX_VALUE );
-      this.semaphore = semaphore;
     }
 
-    @Override
-    public boolean tryAcquire( final int perms, final long timeout, final TimeUnit unit ) throws InterruptedException
+    private static final class RedissonSemaphore implements AdaptedSemaphoreNamedLock.AdaptedSemaphore
     {
-      return semaphore.tryAcquire( perms, timeout, unit );
-    }
+        private final RSemaphore semaphore;
 
-    @Override
-    public void release( final int perms )
-    {
-      semaphore.release( perms );
+        private RedissonSemaphore( final RSemaphore semaphore )
+        {
+            semaphore.addPermits( Integer.MAX_VALUE );
+            this.semaphore = semaphore;
+        }
+
+        @Override
+        public boolean tryAcquire( final int perms, final long timeout, final TimeUnit unit ) throws InterruptedException
+        {
+            return semaphore.tryAcquire( perms, timeout, unit );
+        }
+
+        @Override
+        public void release( final int perms )
+        {
+            semaphore.release( perms );
+        }
     }
-  }
 }

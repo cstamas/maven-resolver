@@ -116,8 +116,8 @@ public abstract class NamedLockFactoryTestSupport {
     @Test(timeout = 5000)
     public void sharedAccess() throws InterruptedException {
         final String name = lockName();
-        CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-        CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+        CountDownLatch winners = new CountDownLatch(2); // we expect 2 winners
+        CountDownLatch losers = new CountDownLatch(0); // we expect 0 losers
         Thread t1 = new Thread(new Access(namedLockFactory, name, true, winners, losers));
         Thread t2 = new Thread(new Access(namedLockFactory, name, true, winners, losers));
         t1.start();

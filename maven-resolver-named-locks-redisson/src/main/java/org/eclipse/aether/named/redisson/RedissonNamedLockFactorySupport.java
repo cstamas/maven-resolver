@@ -36,82 +36,82 @@ import java.nio.file.Paths;
 public abstract class RedissonNamedLockFactorySupport
     extends NamedLockFactorySupport
 {
-  protected static final String NAME_PREFIX = "maven:resolver:";
+    protected static final String NAME_PREFIX = "maven:resolver:";
 
-  private static final String DEFAULT_CONFIG_FILE_NAME = "maven-resolver-redisson.yaml";
+    private static final String DEFAULT_CONFIG_FILE_NAME = "maven-resolver-redisson.yaml";
 
-  private static final String DEFAULT_REDIS_ADDRESS = "redis://localhost:6379";
+    private static final String DEFAULT_REDIS_ADDRESS = "redis://localhost:6379";
 
-  private static final String DEFAULT_CLIENT_NAME = "maven-resolver";
+    private static final String DEFAULT_CLIENT_NAME = "maven-resolver";
 
-  private static final String CONFIG_PROP_CONFIG_FILE = "aether.syncContext.named.redisson.configFile";
+    private static final String CONFIG_PROP_CONFIG_FILE = "aether.syncContext.named.redisson.configFile";
 
-  protected final RedissonClient redissonClient;
+    protected final RedissonClient redissonClient;
 
-  public RedissonNamedLockFactorySupport()
-  {
-    this.redissonClient = createRedissonClient();
-  }
-
-  @Override
-  public void shutdown()
-  {
-    redissonClient.shutdown();
-  }
-
-  private RedissonClient createRedissonClient()
-  {
-    Path configFilePath = null;
-
-    String configFile = System.getProperty( CONFIG_PROP_CONFIG_FILE );
-    if ( configFile != null && !configFile.isEmpty() )
+    public RedissonNamedLockFactorySupport()
     {
-      configFilePath = Paths.get( configFile );
-      if ( Files.notExists( configFilePath ) )
-      {
-        throw new IllegalArgumentException( "The specified Redisson config file does not exist: "
-            + configFilePath );
-      }
+        this.redissonClient = createRedissonClient();
     }
 
-    if ( configFilePath == null )
+    @Override
+    public void shutdown()
     {
-      String mavenConf = System.getProperty( "maven.conf" );
-      if ( mavenConf != null && !mavenConf.isEmpty() )
-      {
-        configFilePath = Paths.get( mavenConf, DEFAULT_CONFIG_FILE_NAME );
-        if ( Files.notExists( configFilePath ) )
+        redissonClient.shutdown();
+    }
+
+    private RedissonClient createRedissonClient()
+    {
+        Path configFilePath = null;
+
+        String configFile = System.getProperty( CONFIG_PROP_CONFIG_FILE );
+        if ( configFile != null && !configFile.isEmpty() )
         {
-          configFilePath = null;
+            configFilePath = Paths.get( configFile );
+            if ( Files.notExists( configFilePath ) )
+            {
+                throw new IllegalArgumentException( "The specified Redisson config file does not exist: "
+                        + configFilePath );
+            }
         }
-      }
+
+        if ( configFilePath == null )
+        {
+            String mavenConf = System.getProperty( "maven.conf" );
+            if ( mavenConf != null && !mavenConf.isEmpty() )
+            {
+                configFilePath = Paths.get( mavenConf, DEFAULT_CONFIG_FILE_NAME );
+                if ( Files.notExists( configFilePath ) )
+                {
+                    configFilePath = null;
+                }
+            }
+        }
+
+        Config config;
+
+        if ( configFilePath != null )
+        {
+            log.trace( "Reading Redisson config file from '{}'", configFilePath );
+            try ( InputStream is = Files.newInputStream( configFilePath ) )
+            {
+                config = Config.fromYAML( is );
+            }
+            catch ( IOException e )
+            {
+                throw new IllegalStateException( "Failed to read Redisson config file: " + configFilePath, e );
+            }
+        }
+        else
+        {
+            config = new Config();
+            config.useSingleServer()
+                    .setAddress( DEFAULT_REDIS_ADDRESS )
+                    .setClientName( DEFAULT_CLIENT_NAME );
+        }
+
+        RedissonClient redissonClient = Redisson.create( config );
+        log.trace( "Created Redisson client with id '{}'", redissonClient.getId() );
+
+        return redissonClient;
     }
-
-    Config config;
-
-    if ( configFilePath != null )
-    {
-      log.trace( "Reading Redisson config file from '{}'", configFilePath );
-      try ( InputStream is = Files.newInputStream( configFilePath ) )
-      {
-        config = Config.fromYAML( is );
-      }
-      catch ( IOException e )
-      {
-        throw new IllegalStateException( "Failed to read Redisson config file: " + configFilePath, e );
-      }
-    }
-    else
-    {
-      config = new Config();
-      config.useSingleServer()
-          .setAddress( DEFAULT_REDIS_ADDRESS )
-          .setClientName( DEFAULT_CLIENT_NAME );
-    }
-
-    RedissonClient redissonClient = Redisson.create( config );
-    log.trace( "Created Redisson client with id '{}'", redissonClient.getId() );
-
-    return redissonClient;
-  }
 }

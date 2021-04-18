@@ -33,15 +33,15 @@ import javax.inject.Singleton;
 public class RedissonReadWriteLockNamedLockFactory
     extends RedissonNamedLockFactorySupport
 {
-  public static final String NAME = "rwlock-redisson";
+    public static final String NAME = "rwlock-redisson";
 
-  @Override
-  protected NamedLockSupport createLock( final String name )
-  {
-    return new ReadWriteLockNamedLock(
-            name,
-            this,
-            redissonClient.getReadWriteLock( NAME_PREFIX + name )
-    );
-  }
+    @Override
+    protected NamedLockSupport createLock( final String name )
+    {
+        return new ReadWriteLockNamedLock(
+                   name,
+                   this,
+                   redissonClient.getReadWriteLock( NAME_PREFIX + name )
+        );
+    }
 }

@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * Named lock support implementation that is using {@link ReadWriteLock} instances. The adapted lock MUST SUPPORT
- * reentrancy, non re-entrant locks will NOT work. It is responsibility of one adapting lock, to ensure that
+ * reentrancy, non re-entrant locks will NOT work. It is the responsibility of an adapting lock, to ensure that
  * above lock requirement stands.
  */
 public class ReadWriteLockNamedLock extends NamedLockSupport

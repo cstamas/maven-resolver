@@ -42,11 +42,11 @@ import java.util.Objects;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Discriminating {@link NameMapper}, that wraps another {@link NameMapper} and adds "discriminator" as prefix, that
- * makes lock names unique including local repository (by default). The discriminator may be passed in via {@link
- * RepositorySystemSession} or is automatically calculated based on local repository path. The implementation retains
- * order of collection elements as it got it from {@link NameMapper#nameLocks(RepositorySystemSession, Collection,
- * Collection)} method.
+ * Discriminating {@link NameMapper}, that wraps another {@link NameMapper} and adds a "discriminator" as prefix, that
+ * makes lock names unique including the hostname and local repository (by default). The discriminator may be passed
+ * in via {@link RepositorySystemSession} or is automatically calculated based on the local hostname and repository
+ * path. The implementation retains order of collection elements as it got it from
+ * {@link NameMapper#nameLocks(RepositorySystemSession, Collection, Collection)} method.
  * <p>
  * The default setup wraps {@link GAVNameMapper}, but manually may be created any instance needed.
  */

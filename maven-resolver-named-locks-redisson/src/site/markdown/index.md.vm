@@ -19,7 +19,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-This module implement Named Locks using Redisson. It provides two implementations, that are distributed and relies on
+This module implement named locks using Redisson. It provides two implementations, that are distributed and rely on
 Redisson distributed objects feature.
 
 Out of the box "redisson" (distributed) named lock implementations are following:
@@ -31,8 +31,8 @@ Out of the box "redisson" (distributed) named lock implementations are following
 
 ${esc.hash}${esc.hash} Open Issues/Notes
 
-- It only works when SISU DI is used and not the bundled `AetherModule` or
-  `ServiceLocator` (Maven uses SISU dependency injection).
+- It only works when Sisu DI is used and not the bundled `AetherModule` or
+  `ServiceLocator` (Maven uses Sisu dependency injection).
 - Usage from plugins has not been tested yet.
 - The `furnace-maven-plugin` does not work this implementation because it uses `ServiceLocator` instead
   of dependency injection.
@@ -70,4 +70,4 @@ ${esc.hash}${esc.hash} Installation/Testing
   ├── <a href="https://repo1.maven.org/maven2/io/reactivex/rxjava2/rxjava/2.2.19/rxjava-2.2.19.jar">rxjava-2.2.19.jar</a>
   └── <a href="https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.26/snakeyaml-1.26.jar">snakeyaml-1.26.jar</a></pre>
 - Start your Redis instance on `localhost` or configure a remote instance with `${maven.conf}/maven-resolver-redisson.yaml`.
-- Now start a multithreaded Maven build on your project and make sure Named Locks SyncContextFactory is being used.
+- Now start a multithreaded Maven build on your project and make sure `NamedSyncContextFactory` is being used.

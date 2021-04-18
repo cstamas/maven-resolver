@@ -98,8 +98,8 @@ public abstract class NamedLockFactoryAdapterTestSupport
 
   @Test(timeout = 5000)
   public void sharedAccess() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-    CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winners
+    CountDownLatch losers = new CountDownLatch(0); // we expect 0 losers
     Thread t1 = new Thread(new Access(true, winners, losers, adapter, session, null));
     Thread t2 = new Thread(new Access(true, winners, losers, adapter, session, null));
     t1.start();
@@ -140,8 +140,8 @@ public abstract class NamedLockFactoryAdapterTestSupport
 
   @Test(timeout = 5000)
   public void nestedSharedShared() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-    CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winners
+    CountDownLatch losers = new CountDownLatch(0); // we expect 0 losers
     Thread t1 = new Thread(
             new Access(true, winners, losers, adapter, session,
                     new Access(true, winners, losers, adapter, session, null)
@@ -155,8 +155,8 @@ public abstract class NamedLockFactoryAdapterTestSupport
 
   @Test(timeout = 5000)
   public void nestedExclusiveShared() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-    CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winners
+    CountDownLatch losers = new CountDownLatch(0); // we expect 0 losers
     Thread t1 = new Thread(
             new Access(false, winners, losers, adapter, session,
                     new Access(true, winners, losers, adapter, session, null)
@@ -170,8 +170,8 @@ public abstract class NamedLockFactoryAdapterTestSupport
 
   @Test(timeout = 5000)
   public void nestedExclusiveExclusive() throws InterruptedException {
-    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winner
-    CountDownLatch losers = new CountDownLatch(0); // we expect 0 loser
+    CountDownLatch winners = new CountDownLatch(2); // we expect 2 winners
+    CountDownLatch losers = new CountDownLatch(0); // we expect 0 losers
     Thread t1 = new Thread(
             new Access(false, winners, losers, adapter, session,
                     new Access(false, winners, losers, adapter, session, null)
