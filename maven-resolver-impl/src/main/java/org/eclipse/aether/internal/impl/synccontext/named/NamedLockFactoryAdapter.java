@@ -138,7 +138,7 @@ public final class NamedLockFactoryAdapter
                     {
                         namedLock.close();
                         throw new IllegalStateException(
-                                "Could not " + (shared ? "read" : "write") + " lock '" + namedLock.name() + "'" );
+                                "Could not " + ( shared ? "read" : "write" ) + " lock '" + namedLock.name() + "'" );
                     }
 
                     locks.push( namedLock );
