@@ -94,7 +94,7 @@ public abstract class NamedLockFactorySupport implements NamedLockFactory
     {
         private final NamedLockSupport namedLock;
 
-        private AtomicInteger referenceCount;
+        private final AtomicInteger referenceCount;
 
         private NamedLockHolder( NamedLockSupport namedLock )
         {
