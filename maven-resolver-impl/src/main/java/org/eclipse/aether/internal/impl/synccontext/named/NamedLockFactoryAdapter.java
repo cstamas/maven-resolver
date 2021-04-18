@@ -121,6 +121,9 @@ public final class NamedLockFactoryAdapter
                         .getLock( session, key ) : namedLockFactory.getLock( key );
                 try
                 {
+                     LOGGER.trace( "Acquiring {} lock for '{}'",
+                             shared ? "read" : "write", key );
+
                     boolean locked;
                     if ( shared )
                     {
@@ -135,7 +138,7 @@ public final class NamedLockFactoryAdapter
                     {
                         namedLock.close();
                         throw new IllegalStateException(
-                                "Could not lock " + namedLock.name() + " (shared=" + shared + ")" );
+                                "Could not " + (shared ? "read" : "write") + " lock '" + namedLock.name() + "'" );
                     }
 
                     locks.push( namedLock );
@@ -164,6 +167,8 @@ public final class NamedLockFactoryAdapter
             {
                 try ( NamedLock namedLock = locks.pop() )
                 {
+                    LOGGER.trace( "Releasing {} lock for '{}'",
+                            shared ? "read" : "write", namedLock.name() );
                     namedLock.unlock();
                     released++;
                 }
