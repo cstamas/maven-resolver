@@ -32,10 +32,10 @@ public interface NameMapper
 {
     /**
      * Creates (opaque) names for passed in artifacts and metadata. Returned collection has max size of sum of the
-     * passed in artifacts and metadata collections, or less. If an empty collection is returned, there will be no locking
-     * happening. Never returns {@code null}. The resulting collection MUST BE "stable" (always sorted by same criteria)
-     * to avoid deadlocks by acquiring locks in same order, essentially disregarding the order of the input
-     * collections.
+     * passed in artifacts and metadata collections, or less. If an empty collection is returned, there will be no
+     * locking happening. Never returns {@code null}. The resulting collection MUST BE "stable" (always sorted by
+     * same criteria) to avoid deadlocks by acquiring locks in same order, essentially disregarding the order of
+     * the input collections.
      */
     Collection<String> nameLocks( RepositorySystemSession session, Collection<? extends Artifact> artifacts,
                                   Collection<? extends Metadata> metadatas );

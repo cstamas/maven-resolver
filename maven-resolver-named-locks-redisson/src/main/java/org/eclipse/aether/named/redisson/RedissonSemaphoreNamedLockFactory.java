@@ -56,7 +56,8 @@ public class RedissonSemaphoreNamedLockFactory
         }
 
         @Override
-        public boolean tryAcquire( final int perms, final long timeout, final TimeUnit unit ) throws InterruptedException
+        public boolean tryAcquire( final int perms, final long timeout, final TimeUnit unit )
+            throws InterruptedException
         {
             return semaphore.tryAcquire( perms, timeout, unit );
         }
