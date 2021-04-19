@@ -77,10 +77,39 @@ public abstract class NamedLockFactorySupport implements NamedLockFactory
         return destroyed.get();
     }
 
+    /**
+     * Returns reference count by name, not to be used for other than logging and diagnosing purposes.
+     */
     public int refCount( final String name )
     {
-        NamedLockHolder holder = locks.get( name );
-        return holder != null ? holder.referenceCount.get() : 0;
+        AtomicInteger refCount = new AtomicInteger( 0 );
+        locks.compute( name, ( k, v ) ->
+        {
+            if ( v != null )
+            {
+                refCount.set( v.referenceCount.get() );
+            }
+            return v;
+        } );
+        return refCount.get();
+    }
+
+    /**
+     * Returns reference count by instance, not to be used for other than logging and diagnosing purposes. This method
+     * main use is in {@link NamedLockSupport#finalize()} only.
+     */
+    int refCount( final NamedLockSupport instance )
+    {
+        AtomicInteger refCount = new AtomicInteger( 0 );
+        locks.compute( instance.name(), ( k, v ) ->
+        {
+            if ( v != null && v.namedLock == instance )
+            {
+                refCount.set( v.referenceCount.get() );
+            }
+            return v;
+        } );
+        return refCount.get();
     }
 
     protected abstract NamedLockSupport createLock( final String name );

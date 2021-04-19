@@ -57,7 +57,7 @@ public abstract class NamedLockSupport implements NamedLock
     {
         try
         {
-            int refCount = factory.refCount( name );
+            int refCount = factory.refCount( this );
             if ( refCount != 0 )
             {
                 // report leak
