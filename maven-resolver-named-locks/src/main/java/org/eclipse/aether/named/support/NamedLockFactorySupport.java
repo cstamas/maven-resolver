@@ -86,7 +86,7 @@ public abstract class NamedLockFactorySupport implements NamedLockFactory
             if ( !locks.isEmpty() )
             {
                 // report leak
-                log.warn( "Lock leak, referenced locks still exists {}", locks );
+                log.warn( "Lock leak, referenced locks still exist {}", locks );
             }
         }
         finally
@@ -125,7 +125,8 @@ public abstract class NamedLockFactorySupport implements NamedLockFactory
         }
 
         @Override
-        public String toString() {
+        public String toString()
+        {
             return "[refCount" + referenceCount.get() + ", lock=" + namedLock + "]";
         }
     }
