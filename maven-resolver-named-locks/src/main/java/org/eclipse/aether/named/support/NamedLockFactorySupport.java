@@ -77,39 +77,22 @@ public abstract class NamedLockFactorySupport implements NamedLockFactory
         return destroyed.get();
     }
 
-    /**
-     * Returns reference count by name, not to be used for other than logging and diagnosing purposes.
-     */
-    public int refCount( final String name )
-    {
-        AtomicInteger refCount = new AtomicInteger( 0 );
-        locks.compute( name, ( k, v ) ->
-        {
-            if ( v != null )
-            {
-                refCount.set( v.referenceCount.get() );
-            }
-            return v;
-        } );
-        return refCount.get();
-    }
 
-    /**
-     * Returns reference count by instance, not to be used for other than logging and diagnosing purposes. This method
-     * main use is in {@link NamedLockSupport#finalize()} only.
-     */
-    int refCount( final NamedLockSupport instance )
+    @Override
+    protected void finalize() throws Throwable
     {
-        AtomicInteger refCount = new AtomicInteger( 0 );
-        locks.compute( instance.name(), ( k, v ) ->
+        try
         {
-            if ( v != null && v.namedLock == instance )
+            if ( !locks.isEmpty() )
             {
-                refCount.set( v.referenceCount.get() );
+                // report leak
+                log.warn( "Lock leak, referenced locks still exists {}", locks );
             }
-            return v;
-        } );
-        return refCount.get();
+        }
+        finally
+        {
+            super.finalize();
+        }
     }
 
     protected abstract NamedLockSupport createLock( final String name );
@@ -139,6 +122,11 @@ public abstract class NamedLockFactorySupport implements NamedLockFactory
         private int decRef()
         {
             return referenceCount.decrementAndGet();
+        }
+
+        @Override
+        public String toString() {
+            return "[refCount" + referenceCount.get() + ", lock=" + namedLock + "]";
         }
     }
 }

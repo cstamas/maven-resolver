@@ -51,22 +51,4 @@ public abstract class NamedLockSupport implements NamedLock
     {
         factory.closeLock( this );
     }
-
-    @Override
-    protected void finalize() throws Throwable
-    {
-        try
-        {
-            int refCount = factory.refCount( this );
-            if ( refCount != 0 )
-            {
-                // report leak
-                log.warn( "NamedLock leak: {} references={}", name, refCount );
-            }
-        }
-        finally
-        {
-            super.finalize();
-        }
-    }
 }
