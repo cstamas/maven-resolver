@@ -127,7 +127,7 @@ public abstract class NamedLockFactorySupport implements NamedLockFactory
         @Override
         public String toString()
         {
-            return "[refCount" + referenceCount.get() + ", lock=" + namedLock + "]";
+            return "[refCount=" + referenceCount.get() + ", lock=" + namedLock + "]";
         }
     }
 }
