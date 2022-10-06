@@ -19,6 +19,7 @@ package org.eclipse.aether.internal.impl;
  * under the License.
  */
 
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -29,7 +30,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.aether.RepositoryEvent;
@@ -74,6 +77,7 @@ import org.eclipse.aether.transfer.ArtifactTransferException;
 import org.eclipse.aether.transfer.NoRepositoryConnectorException;
 import org.eclipse.aether.transfer.RepositoryOfflineException;
 import org.eclipse.aether.util.ConfigUtils;
+import org.eclipse.aether.util.artifact.ArtifactIdUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -596,6 +600,26 @@ public class DefaultArtifactResolver
         return downloads;
     }
 
+    private final Object mutex = new Object();
+
+    private final LinkedHashMap<Artifact, LinkedHashMap<RemoteRepository, Boolean>> downloadEvaluations
+            = new LinkedHashMap<>();
+
+    @PreDestroy
+    public void reportDownloadEvaluations()
+    {
+        LOGGER.info( "Total Download Evaluations" );
+        LOGGER.info( "==========================" );
+        for ( Map.Entry<Artifact, LinkedHashMap<RemoteRepository, Boolean>> entry : downloadEvaluations.entrySet() )
+        {
+            LOGGER.info( "{}", ArtifactIdUtils.toId( entry.getKey() ) );
+            for ( Map.Entry<RemoteRepository, Boolean> evalEntry : entry.getValue().entrySet() )
+            {
+                LOGGER.info( "  {} : {}", evalEntry.getKey().getId(), evalEntry.getValue() );
+            }
+        }
+    }
+
     private void evaluateDownloads( RepositorySystemSession session, ResolutionGroup group )
     {
         LocalRepositoryManager lrm = session.getLocalRepositoryManager();
@@ -646,6 +670,27 @@ public class DefaultArtifactResolver
             if ( download.getException() == null )
             {
                 artifactResolved( session, download.getTrace(), artifact, group.repository, null );
+            }
+        }
+
+        synchronized ( mutex )
+        {
+            for ( ResolutionItem item : group.items )
+            {
+                downloadEvaluations.computeIfAbsent( item.artifact, k -> new LinkedHashMap<>() )
+                        .compute( group.repository, ( r, b ) ->
+                        {
+                            boolean newValue = r.equals( item.result.getRepository() )
+                                    && item.result.getArtifact() != null && item.result.getArtifact().getFile() != null;
+                            if ( b == null )
+                            {
+                                return newValue;
+                            }
+                            else
+                            {
+                                return b || newValue;
+                            }
+                        } );
             }
         }
     }
