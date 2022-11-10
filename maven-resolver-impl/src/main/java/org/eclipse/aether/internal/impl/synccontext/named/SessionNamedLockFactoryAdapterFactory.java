@@ -28,8 +28,6 @@ import java.util.Map;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.impl.RepositorySystemLifecycle;
 import org.eclipse.aether.named.NamedLockFactory;
-import org.eclipse.aether.spi.locator.Service;
-import org.eclipse.aether.spi.locator.ServiceLocator;
 import org.eclipse.aether.util.ConfigUtils;
 
 import static java.util.Objects.requireNonNull;
@@ -43,7 +41,6 @@ import static java.util.Objects.requireNonNull;
 @Named
 public final class SessionNamedLockFactoryAdapterFactory
         extends NamedLockFactoryAdapterFactory
-        implements Service
 {
     private static final String INSTANCE_KEY = SessionNamedLockFactoryAdapterFactory.class.getName() + ".instance";
 
@@ -55,12 +52,6 @@ public final class SessionNamedLockFactoryAdapterFactory
         super( FACTORIES, NAME_MAPPERS );
     }
 
-    @Override
-    public void initService( ServiceLocator locator )
-    {
-        locator.getService( RepositorySystemLifecycle.class ).addOnSystemEndedHandler( this::shutdown );
-    }
-
     /**
      * Constructor that uses Eclipse Sisu parameter injection.
      */
@@ -70,7 +61,7 @@ public final class SessionNamedLockFactoryAdapterFactory
                                                   final Map<String, NameMapper> nameMappers )
     {
         super( factories, nameMappers );
-        requireNonNull( repositorySystemLifecycle ).addOnSystemEndedHandler( this::shutdown );
+        registerLifecycle( repositorySystemLifecycle );
     }
 
     @Override
@@ -84,10 +75,5 @@ public final class SessionNamedLockFactoryAdapterFactory
                     selectNamedLockFactory( ConfigUtils.getString( session, DEFAULT_FACTORY, FACTORY_KEY ) );
             return new NamedLockFactoryAdapter( nameMapper, namedLockFactory );
         } );
-    }
-
-    private void shutdown()
-    {
-        factories.values().forEach( NamedLockFactory::shutdown );
     }
 }

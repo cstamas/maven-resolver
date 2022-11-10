@@ -28,9 +28,6 @@ import java.util.Map;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.impl.RepositorySystemLifecycle;
 import org.eclipse.aether.named.NamedLockFactory;
-import org.eclipse.aether.spi.locator.Service;
-import org.eclipse.aether.spi.locator.ServiceLocator;
-
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -44,7 +41,6 @@ import static java.util.Objects.requireNonNull;
 @Named
 public final class ParameterizedNamedLockFactoryAdapterFactory
         extends NamedLockFactoryAdapterFactory
-        implements Service
 {
     private final NamedLockFactory namedLockFactory;
 
@@ -63,12 +59,6 @@ public final class ParameterizedNamedLockFactoryAdapterFactory
         this.adapter = new NamedLockFactoryAdapter( this.nameMapper, this.namedLockFactory );
     }
 
-    @Override
-    public void initService( ServiceLocator locator )
-    {
-        locator.getService( RepositorySystemLifecycle.class ).addOnSystemEndedHandler( namedLockFactory::shutdown );
-    }
-
     /**
      * Constructor that uses Eclipse Sisu parameter injection.
      */
@@ -81,9 +71,9 @@ public final class ParameterizedNamedLockFactoryAdapterFactory
                                                         @Named( "${" + NAME_MAPPER_KEY + ":-" + DEFAULT_NAME_MAPPER + "}" ) final String selectedMapperName )
     {
         super( factories, nameMappers );
+        registerLifecycle( repositorySystemLifecycle );
         this.namedLockFactory = selectNamedLockFactory( selectedFactoryName );
         this.nameMapper = selectNameMapper( selectedMapperName );
-        requireNonNull( repositorySystemLifecycle ).addOnSystemEndedHandler( namedLockFactory::shutdown );
         this.adapter = new NamedLockFactoryAdapter( this.nameMapper, this.namedLockFactory );
     }
 

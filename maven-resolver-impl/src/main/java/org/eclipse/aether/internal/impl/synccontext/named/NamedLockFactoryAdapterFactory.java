@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.impl.RepositorySystemLifecycle;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.DiscriminatingNameMapperProvider;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.FileGAVNameMapperProvider;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.FileHashingGAVNameMapperProvider;
@@ -33,6 +34,8 @@ import org.eclipse.aether.named.providers.FileLockNamedLockFactory;
 import org.eclipse.aether.named.providers.LocalReadWriteLockNamedLockFactory;
 import org.eclipse.aether.named.providers.LocalSemaphoreNamedLockFactory;
 import org.eclipse.aether.named.providers.NoopNamedLockFactory;
+import org.eclipse.aether.spi.locator.Service;
+import org.eclipse.aether.spi.locator.ServiceLocator;
 
 import static java.util.Objects.requireNonNull;
 
@@ -41,7 +44,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @since 1.9.1
  */
-public abstract class NamedLockFactoryAdapterFactory
+public abstract class NamedLockFactoryAdapterFactory implements Service
 {
     protected static final Map<String, NamedLockFactory> FACTORIES;
 
@@ -77,11 +80,22 @@ public abstract class NamedLockFactoryAdapterFactory
 
     protected final Map<String, NameMapper> nameMappers;
 
+    @Override
+    public void initService( ServiceLocator locator )
+    {
+        registerLifecycle( locator.getService( RepositorySystemLifecycle.class ) );
+    }
+
     protected NamedLockFactoryAdapterFactory( Map<String, NamedLockFactory> factories,
                                               Map<String, NameMapper> nameMappers )
     {
         this.factories = requireNonNull( factories );
         this.nameMappers = requireNonNull( nameMappers );
+    }
+
+    protected void registerLifecycle( RepositorySystemLifecycle repositorySystemLifecycle )
+    {
+        repositorySystemLifecycle.addOnSystemEndedHandler( this::shutdown );
     }
 
     protected NamedLockFactory selectNamedLockFactory( final String factoryName )
@@ -104,6 +118,11 @@ public abstract class NamedLockFactoryAdapterFactory
                     + ", known ones: " + nameMappers.keySet() );
         }
         return nameMapper;
+    }
+
+    private void shutdown()
+    {
+        factories.values().forEach( NamedLockFactory::shutdown );
     }
 
     /**
