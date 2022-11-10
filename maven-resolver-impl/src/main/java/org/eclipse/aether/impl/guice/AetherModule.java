@@ -66,8 +66,8 @@ import org.eclipse.aether.internal.impl.filter.PrefixesRemoteRepositoryFilterSou
 import org.eclipse.aether.internal.impl.resolution.TrustedChecksumsArtifactResolverPostProcessor;
 import org.eclipse.aether.internal.impl.synccontext.DefaultSyncContextFactory;
 import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
-import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactorySelector;
-import org.eclipse.aether.internal.impl.synccontext.named.ParameterizedNamedLockFactorySelector;
+import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapterFactory;
+import org.eclipse.aether.internal.impl.synccontext.named.ParameterizedNamedLockFactoryAdapterFactory;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.DiscriminatingNameMapperProvider;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.FileGAVNameMapperProvider;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.FileHashingGAVNameMapperProvider;
@@ -229,7 +229,7 @@ public class AetherModule
         bind( RepositorySystemLifecycle.class )
                 .to( DefaultRepositorySystemLifecycle.class ).in( Singleton.class );
 
-        bind( NamedLockFactorySelector.class ).toInstance( new ParameterizedNamedLockFactorySelector() );
+        bind( NamedLockFactoryAdapterFactory.class ).toInstance( new ParameterizedNamedLockFactoryAdapterFactory() );
         bind( SyncContextFactory.class ).to( DefaultSyncContextFactory.class ).in( Singleton.class );
         bind( org.eclipse.aether.impl.SyncContextFactory.class )
                 .to( org.eclipse.aether.internal.impl.synccontext.legacy.DefaultSyncContextFactory.class )

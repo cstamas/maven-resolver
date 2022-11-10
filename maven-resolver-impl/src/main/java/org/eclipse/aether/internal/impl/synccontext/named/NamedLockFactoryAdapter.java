@@ -73,9 +73,14 @@ public final class NamedLockFactoryAdapter
         return new AdaptedLockSyncContext( session, shared, nameMapper, namedLockFactory );
     }
 
-    public void shutdown()
+    public NameMapper getNameMapper()
     {
-        namedLockFactory.shutdown();
+        return nameMapper;
+    }
+
+    public NamedLockFactory getNamedLockFactory()
+    {
+        return namedLockFactory;
     }
 
     public String toString()

@@ -19,13 +19,10 @@ package org.eclipse.aether.internal.impl.synccontext.named;
  * under the License.
  */
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.DiscriminatingNameMapperProvider;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.FileGAVNameMapperProvider;
 import org.eclipse.aether.internal.impl.synccontext.named.providers.FileHashingGAVNameMapperProvider;
@@ -37,27 +34,22 @@ import org.eclipse.aether.named.providers.LocalReadWriteLockNamedLockFactory;
 import org.eclipse.aether.named.providers.LocalSemaphoreNamedLockFactory;
 import org.eclipse.aether.named.providers.NoopNamedLockFactory;
 
+import static java.util.Objects.requireNonNull;
+
 /**
- * Parameterized selector implementation that selects based on injected parameters.
+ * Support class for {@link NamedLockFactoryAdapter} factories.
  *
- * @since 1.9.0
+ * @since 1.9.1
  */
-@Singleton
-@Named
-public final class ParameterizedNamedLockFactorySelector
-        implements NamedLockFactorySelector
+public abstract class NamedLockFactoryAdapterFactory
 {
-    private static final String FACTORY_KEY = "aether.syncContext.named.factory";
+    protected static final Map<String, NamedLockFactory> FACTORIES;
 
-    private static final String NAME_MAPPER_KEY = "aether.syncContext.named.nameMapper";
+    protected static final String DEFAULT_FACTORY = LocalReadWriteLockNamedLockFactory.NAME;
 
-    private static final Map<String, NamedLockFactory> FACTORIES;
+    protected static final Map<String, NameMapper> NAME_MAPPERS;
 
-    private static final String DEFAULT_FACTORY = LocalReadWriteLockNamedLockFactory.NAME;
-
-    private static final Map<String, NameMapper> NAME_MAPPERS;
-
-    private static final String DEFAULT_NAME_MAPPER = GAVNameMapperProvider.NAME;
+    protected static final String DEFAULT_NAME_MAPPER = GAVNameMapperProvider.NAME;
 
     static
     {
@@ -77,52 +69,22 @@ public final class ParameterizedNamedLockFactorySelector
         NAME_MAPPERS = mappers;
     }
 
-    private final NamedLockFactory namedLockFactory;
+    protected static final String FACTORY_KEY = "aether.syncContext.named.factory";
 
-    private final NameMapper nameMapper;
+    protected static final String NAME_MAPPER_KEY = "aether.syncContext.named.nameMapper";
 
-    /**
-     * Default constructor for non Eclipse Sisu uses.
-     */
-    public ParameterizedNamedLockFactorySelector()
+    protected final Map<String, NamedLockFactory> factories;
+
+    protected final Map<String, NameMapper> nameMappers;
+
+    protected NamedLockFactoryAdapterFactory( Map<String, NamedLockFactory> factories,
+                                              Map<String, NameMapper> nameMappers )
     {
-        this( FACTORIES, DEFAULT_FACTORY, NAME_MAPPERS, DEFAULT_NAME_MAPPER );
+        this.factories = requireNonNull( factories );
+        this.nameMappers = requireNonNull( nameMappers );
     }
 
-    /**
-     * Constructor that uses Eclipse Sisu parameter injection.
-     */
-    @SuppressWarnings( "checkstyle:LineLength" )
-    @Inject
-    public ParameterizedNamedLockFactorySelector( final Map<String, NamedLockFactory> factories,
-                                                  @Named( "${" + FACTORY_KEY + ":-" + DEFAULT_FACTORY + "}" ) final String selectedFactoryName,
-                                                  final Map<String, NameMapper> nameMappers,
-                                                  @Named( "${" + NAME_MAPPER_KEY + ":-" + DEFAULT_NAME_MAPPER + "}" ) final String selectedMapperName )
-    {
-        this.namedLockFactory = selectNamedLockFactory( factories, selectedFactoryName );
-        this.nameMapper = selectNameMapper( nameMappers, selectedMapperName );
-    }
-
-    /**
-     * Returns the selected {@link NamedLockFactory}, never null.
-     */
-    @Override
-    public NamedLockFactory getSelectedNamedLockFactory()
-    {
-        return namedLockFactory;
-    }
-
-    /**
-     * Returns the selected {@link NameMapper}, never null.
-     */
-    @Override
-    public NameMapper getSelectedNameMapper()
-    {
-        return nameMapper;
-    }
-
-    private static NamedLockFactory selectNamedLockFactory( final Map<String, NamedLockFactory> factories,
-                                                     final String factoryName )
+    protected NamedLockFactory selectNamedLockFactory( final String factoryName )
     {
         NamedLockFactory factory = factories.get( factoryName );
         if ( factory == null )
@@ -133,8 +95,7 @@ public final class ParameterizedNamedLockFactorySelector
         return factory;
     }
 
-    private static NameMapper selectNameMapper( final Map<String, NameMapper> nameMappers,
-                                         final String nameMapperName )
+    protected NameMapper selectNameMapper( final String nameMapperName )
     {
         NameMapper nameMapper = nameMappers.get( nameMapperName );
         if ( nameMapper == null )
@@ -144,4 +105,14 @@ public final class ParameterizedNamedLockFactorySelector
         }
         return nameMapper;
     }
+
+    /**
+     * Returns the {@link NamedLockFactoryAdapter}, never {@code null}.
+     * <p>
+     * It is up to implementation what will do here: create new instances over and over based on
+     * passed in session, create (and cache) one instance eagerly, and keep returning that. One
+     * thing for sure, implementation must ensure that all instances emitted by this method will be
+     * properly cleaned up (see {@link NamedLockFactory#shutdown()} method).
+     */
+    public abstract NamedLockFactoryAdapter getAdapter( RepositorySystemSession session );
 }

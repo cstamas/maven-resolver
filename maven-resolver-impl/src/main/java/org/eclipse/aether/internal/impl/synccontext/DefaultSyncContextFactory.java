@@ -25,10 +25,7 @@ import javax.inject.Singleton;
 
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.SyncContext;
-import org.eclipse.aether.impl.RepositorySystemLifecycle;
-import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapter;
-import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactorySelector;
-import org.eclipse.aether.internal.impl.synccontext.named.ParameterizedNamedLockFactorySelector;
+import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapterFactory;
 import org.eclipse.aether.spi.locator.Service;
 import org.eclipse.aether.spi.locator.ServiceLocator;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
@@ -37,24 +34,23 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Default {@link SyncContextFactory} implementation that uses named locks.
+ * <p>
+ * Intentionally "anemic", as all the work is delegated to {@link NamedLockFactoryAdapterFactory}.
  */
 @Singleton
 @Named
 public final class DefaultSyncContextFactory
         implements SyncContextFactory, Service
 {
-    private NamedLockFactoryAdapter namedLockFactoryAdapter;
+    private NamedLockFactoryAdapterFactory namedLockFactoryAdapterFactory;
 
     /**
      * Constructor used with DI, where factories are injected and selected based on key.
      */
     @Inject
-    public DefaultSyncContextFactory( final RepositorySystemLifecycle repositorySystemLifecycle,
-                                      final NamedLockFactorySelector selector )
+    public DefaultSyncContextFactory( final NamedLockFactoryAdapterFactory namedLockFactoryAdapterFactory )
     {
-        repositorySystemLifecycle.addOnSystemEndedHandler( this::shutDownAdapter );
-        this.namedLockFactoryAdapter =
-                new NamedLockFactoryAdapter( selector.getSelectedNameMapper(), selector.getSelectedNamedLockFactory() );
+        this.namedLockFactoryAdapterFactory = requireNonNull( namedLockFactoryAdapterFactory );
     }
 
     /**
@@ -71,24 +67,13 @@ public final class DefaultSyncContextFactory
     @Override
     public void initService( final ServiceLocator locator )
     {
-        locator.getService( RepositorySystemLifecycle.class ).addOnSystemEndedHandler( this::shutDownAdapter );
-        NamedLockFactorySelector selector = new ParameterizedNamedLockFactorySelector();
-        this.namedLockFactoryAdapter =
-                new NamedLockFactoryAdapter( selector.getSelectedNameMapper(), selector.getSelectedNamedLockFactory() );
+        this.namedLockFactoryAdapterFactory = locator.getService( NamedLockFactoryAdapterFactory.class );
     }
 
     @Override
     public SyncContext newInstance( final RepositorySystemSession session, final boolean shared )
     {
         requireNonNull( session, "session cannot be null" );
-        return namedLockFactoryAdapter.newInstance( session, shared );
-    }
-
-    private void shutDownAdapter()
-    {
-        if ( namedLockFactoryAdapter != null )
-        {
-            namedLockFactoryAdapter.shutdown();
-        }
+        return namedLockFactoryAdapterFactory.getAdapter( session ).newInstance( session, shared );
     }
 }
