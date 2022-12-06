@@ -22,23 +22,25 @@ package org.eclipse.aether.spi.signature;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.aether.artifact.Artifact;
+
 /**
- * Component performing selection of {@link SignatureAlgorithmFactory} based on known factory names.
+ * Component performing selection of {@link SignatureAlgorithm} based on known factory names.
  * Note: this component is NOT meant to be implemented or extended by client, is exposed ONLY to make clients
- * able to get {@link SignatureAlgorithmFactory} instances.
+ * able to get {@link SignatureAlgorithm} instances.
  *
  * @noimplement This interface is not intended to be implemented by clients.
  * @noextend This interface is not intended to be extended by clients.
  * @since 1.9.3
  */
-public interface SignatureAlgorithmFactorySelector
+public interface SignatureAlgorithmSelector
 {
     /**
      * Returns factory for given algorithm name, or throws if algorithm not supported.
      *
      * @throws IllegalArgumentException if asked algorithm name is not supported.
      */
-    SignatureAlgorithmFactory select( String algorithmName );
+    SignatureAlgorithm select( String algorithmName );
 
     /**
      * Returns a list of factories for given algorithm names in order as collection is ordered, or throws if any of the
@@ -49,7 +51,7 @@ public interface SignatureAlgorithmFactorySelector
      * @throws NullPointerException if passed in list of names is {@code null}.
      * @since 1.9.0
      */
-    List<SignatureAlgorithmFactory> selectList( Collection<String> algorithmNames );
+    List<SignatureAlgorithm> selectList( Collection<String> algorithmNames );
 
     /**
      * Returns a collection of supported algorithms. This set represents ALL the algorithms supported by Resolver,
@@ -57,5 +59,10 @@ public interface SignatureAlgorithmFactorySelector
      * org.eclipse.aether.spi.connector.layout.RepositoryLayout#getChecksumAlgorithmFactories()} (in fact, is super set
      * of it).
      */
-    Collection<SignatureAlgorithmFactory> getSignatureAlgorithmFactories();
+    Collection<SignatureAlgorithm> getSignatureAlgorithmFactories();
+
+    /**
+     * Returns {@code true} if passed in artifact represents a signature belonging to any known factory.
+     */
+    boolean isSignatureArtifact( Artifact artifact );
 }
