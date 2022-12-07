@@ -171,7 +171,7 @@ public class DefaultSignatureAlgorithmManager
 
             // all the IDs of passed in artifacts
             HashSet<String> toBeSignedIds = new HashSet<>();
-            artifacts.forEach( a -> toBeSignedIds.add( ArtifactIdUtils.toId( a ) ) );
+            toBeSignedArtifacts.forEach( a -> toBeSignedIds.add( ArtifactIdUtils.toId( a ) ) );
 
             // all the IDs of produced signature artifacts
             HashSet<String> signatureIds = new HashSet<>();
@@ -187,7 +187,7 @@ public class DefaultSignatureAlgorithmManager
                 String name = entry.getKey();
                 SignatureSigner signer = entry.getValue();
 
-                Collection<Artifact> signerSignatures = signer.sign( artifacts );
+                Collection<Artifact> signerSignatures = signer.sign( toBeSignedArtifacts );
                 for ( Artifact signature : signerSignatures )
                 {
                     String id = ArtifactIdUtils.toId( signature );
