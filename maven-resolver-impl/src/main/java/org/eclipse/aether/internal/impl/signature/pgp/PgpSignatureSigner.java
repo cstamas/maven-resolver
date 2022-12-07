@@ -1,4 +1,4 @@
-package org.eclipse.aether.spi.signature;
+package org.eclipse.aether.internal.impl.signature.pgp;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,30 +19,29 @@ package org.eclipse.aether.spi.signature;
  * under the License.
  */
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.spi.signature.SignatureSigner;
 
 /**
- * Signature algorithm performing artifact signing.
+ * PGP signer implementation.
  *
  * @since 1.9.3
  */
-public interface SignatureAlgorithm
+public class PgpSignatureSigner
+        implements SignatureSigner
 {
-    /**
-     * Returns the algorithm name, usually used as key, never {@code null} value. The name is a standard name of
-     * algorithm (if applicable) or any other designator that is algorithm commonly referred with. Example: "PGP".
-     */
-    String getName();
+    @Override
+    public Collection<Artifact> sign( Collection<Artifact> artifacts )
+    {
+        return Collections.emptyList();
+    }
 
-    /**
-     * Returns {@code true} if passed in artifact represents a signature belonging to this factory.
-     */
-    boolean isSignatureArtifact( Artifact artifact );
+    @Override
+    public void close()
+    {
 
-    /**
-     * Signs the provided artifact and returns list of signature artifacts, that must have different.
-     */
-    List<Artifact> sign( Artifact artifact );
+    }
 }

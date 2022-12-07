@@ -19,20 +19,21 @@ package org.eclipse.aether.internal.impl;
  * under the License.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import static java.util.Objects.requireNonNull;
-import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.impl.RemoteRepositoryFilterManager;
 import org.eclipse.aether.impl.RepositoryConnectorProvider;
+import org.eclipse.aether.impl.SignatureAlgorithmManager;
 import org.eclipse.aether.internal.impl.filter.FilteringRepositoryConnector;
+import org.eclipse.aether.internal.impl.signature.SignatureRepositoryConnector;
 import org.eclipse.aether.repository.Authentication;
 import org.eclipse.aether.repository.Proxy;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -41,16 +42,20 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.filter.RemoteRepositoryFilter;
 import org.eclipse.aether.spi.locator.Service;
 import org.eclipse.aether.spi.locator.ServiceLocator;
+import org.eclipse.aether.spi.signature.SignatureSigner;
 import org.eclipse.aether.transfer.NoRepositoryConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Objects.requireNonNull;
+
 /**
+ *
  */
 @Singleton
 @Named
 public class DefaultRepositoryConnectorProvider
-    implements RepositoryConnectorProvider, Service
+        implements RepositoryConnectorProvider, Service
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( DefaultRepositoryConnectorProvider.class );
@@ -59,6 +64,8 @@ public class DefaultRepositoryConnectorProvider
 
     private RemoteRepositoryFilterManager remoteRepositoryFilterManager;
 
+    private SignatureAlgorithmManager signatureAlgorithmManager;
+
     public DefaultRepositoryConnectorProvider()
     {
         // enables default constructor
@@ -66,16 +73,19 @@ public class DefaultRepositoryConnectorProvider
 
     @Inject
     DefaultRepositoryConnectorProvider( Set<RepositoryConnectorFactory> connectorFactories,
-                                        RemoteRepositoryFilterManager remoteRepositoryFilterManager )
+                                        RemoteRepositoryFilterManager remoteRepositoryFilterManager,
+                                        SignatureAlgorithmManager signatureAlgorithmManager )
     {
         setRepositoryConnectorFactories( connectorFactories );
         setRemoteRepositoryFilterManager( remoteRepositoryFilterManager );
+        setSignatureAlgorithmManager( signatureAlgorithmManager );
     }
 
     public void initService( ServiceLocator locator )
     {
         setRepositoryConnectorFactories( locator.getServices( RepositoryConnectorFactory.class ) );
         setRemoteRepositoryFilterManager( locator.getService( RemoteRepositoryFilterManager.class ) );
+        setSignatureAlgorithmManager( locator.getService( SignatureAlgorithmManager.class ) );
     }
 
     public DefaultRepositoryConnectorProvider addRepositoryConnectorFactory( RepositoryConnectorFactory factory )
@@ -105,11 +115,17 @@ public class DefaultRepositoryConnectorProvider
         return this;
     }
 
+    public DefaultRepositoryConnectorProvider setSignatureAlgorithmManager(
+            SignatureAlgorithmManager signatureAlgorithmManager )
+    {
+        this.signatureAlgorithmManager = requireNonNull( signatureAlgorithmManager );
+        return this;
+    }
+
     public RepositoryConnector newRepositoryConnector( RepositorySystemSession session, RemoteRepository repository )
-        throws NoRepositoryConnectorException
+            throws NoRepositoryConnectorException
     {
         requireNonNull( repository, "remote repository cannot be null" );
-        RemoteRepositoryFilter filter = remoteRepositoryFilterManager.getRemoteRepositoryFilter( session );
 
         PrioritizedComponents<RepositoryConnectorFactory> factories = new PrioritizedComponents<>( session );
         for ( RepositoryConnectorFactory factory : this.connectorFactories )
@@ -153,18 +169,25 @@ public class DefaultRepositoryConnectorProvider
                     LOGGER.debug( buffer.toString() );
                 }
 
+                RepositoryConnector result = connector;
+                SignatureSigner signer = signatureAlgorithmManager.getSignatureSigners( session );
+                if ( signer != null )
+                {
+                    result = new SignatureRepositoryConnector(
+                            result,
+                            signer
+                    );
+                }
+                RemoteRepositoryFilter filter = remoteRepositoryFilterManager.getRemoteRepositoryFilter( session );
                 if ( filter != null )
                 {
-                    return new FilteringRepositoryConnector(
+                    result = new FilteringRepositoryConnector(
                             repository,
                             connector,
                             filter
                     );
                 }
-                else
-                {
-                    return connector;
-                }
+                return result;
             }
             catch ( NoRepositoryConnectorException e )
             {
@@ -194,7 +217,7 @@ public class DefaultRepositoryConnectorProvider
         }
 
         throw new NoRepositoryConnectorException( repository, buffer.toString(), errors.size() == 1 ? errors.get( 0 )
-                        : null );
+                : null );
     }
 
 }

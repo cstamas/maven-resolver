@@ -24,30 +24,26 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.internal.impl.signature.pgp.PgpSignatureAlgorithm;
-import org.eclipse.aether.spi.signature.SignatureAlgorithm;
+import org.eclipse.aether.internal.impl.signature.pgp.PgpSignatureAlgorithmFactory;
+import org.eclipse.aether.spi.signature.SignatureAlgorithmFactory;
 import org.eclipse.aether.spi.signature.SignatureAlgorithmSelector;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation.
- *
- * @since 1.9.3
  */
 @Singleton
 @Named
 public class DefaultSignatureAlgorithmSelector
         implements SignatureAlgorithmSelector
 {
-    private final Map<String, SignatureAlgorithm> algorithms;
+    private final Map<String, SignatureAlgorithmFactory> factories;
 
     /**
      * Default ctor for SL.
@@ -55,55 +51,28 @@ public class DefaultSignatureAlgorithmSelector
     @Deprecated
     public DefaultSignatureAlgorithmSelector()
     {
-        this.algorithms = new HashMap<>();
-        this.algorithms.put( PgpSignatureAlgorithm.NAME, new PgpSignatureAlgorithm() );
+        this.factories = new HashMap<>();
+        this.factories.put( PgpSignatureAlgorithmFactory.NAME, new PgpSignatureAlgorithmFactory() );
     }
 
     @Inject
-    public DefaultSignatureAlgorithmSelector( Map<String, SignatureAlgorithm> algorithms )
+    public DefaultSignatureAlgorithmSelector( Map<String, SignatureAlgorithmFactory> factories )
     {
-        this.algorithms = requireNonNull( algorithms );
+        this.factories = requireNonNull( factories );
     }
 
     @Override
-    public SignatureAlgorithm select( String algorithmName )
+    public List<SignatureAlgorithmFactory> getSignatureAlgorithmFactories()
     {
-        requireNonNull( algorithmName, "algorithmMame must not be null" );
-        SignatureAlgorithm factory = algorithms.get( algorithmName );
-        if ( factory == null )
-        {
-            throw new IllegalArgumentException(
-                    String.format( "Unsupported signature algorithm %s, supported ones are %s",
-                            algorithmName,
-                            getSignatureAlgorithmFactories().stream()
-                                    .map( SignatureAlgorithm::getName )
-                                    .collect( toList() )
-                    )
-            );
-        }
-        return factory;
-    }
-
-    @Override
-    public List<SignatureAlgorithm> selectList( Collection<String> algorithmNames )
-    {
-        return algorithmNames.stream()
-                .map( this::select )
-                .collect( toList() );
-    }
-
-    @Override
-    public List<SignatureAlgorithm> getSignatureAlgorithmFactories()
-    {
-        return new ArrayList<>( algorithms.values() );
+        return new ArrayList<>( factories.values() );
     }
 
     @Override
     public boolean isSignatureArtifact( Artifact artifact )
     {
-        for ( SignatureAlgorithm signatureAlgorithm : algorithms.values() )
+        for ( SignatureAlgorithmFactory signatureAlgorithmFactory : factories.values() )
         {
-            if ( signatureAlgorithm.isSignatureArtifact( artifact ) )
+            if ( signatureAlgorithmFactory.isSignatureArtifact( artifact ) )
             {
                 return true;
             }

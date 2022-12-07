@@ -75,7 +75,7 @@ public final class DefaultRemoteRepositoryFilterManager
     @Override
     public RemoteRepositoryFilter getRemoteRepositoryFilter( RepositorySystemSession session )
     {
-        return (RemoteRepositoryFilter) session.getData().computeIfAbsent( INSTANCE_KEY, () ->
+        final Object rrf = session.getData().computeIfAbsent( INSTANCE_KEY, () ->
                 {
                     HashMap<String, RemoteRepositoryFilter> filters = new HashMap<>();
                     for ( Map.Entry<String, RemoteRepositoryFilterSource> entry : sources.entrySet() )
@@ -92,11 +92,20 @@ public final class DefaultRemoteRepositoryFilterManager
                     }
                     else
                     {
-                        return null;
+                        return NO_PARTICIPANTS;
                     }
                 }
         );
+
+        if ( rrf == NO_PARTICIPANTS )
+        {
+            return null;
+        }
+
+        return (RemoteRepositoryFilter) rrf;
     }
+
+    private static final Object NO_PARTICIPANTS = new Object();
 
     /**
      * {@link RemoteRepositoryFilter} instance when there are participant filters present. It evaluates into result

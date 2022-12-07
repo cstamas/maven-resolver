@@ -1,4 +1,4 @@
-package org.eclipse.aether.internal.impl.signature.pgp;
+package org.eclipse.aether.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,42 +19,18 @@ package org.eclipse.aether.internal.impl.signature.pgp;
  * under the License.
  */
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import java.util.Collections;
-import java.util.List;
-
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.spi.signature.SignatureAlgorithm;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.spi.signature.SignatureSigner;
 
 /**
- * PGP implementation.
+ * Signature algorithm manager.
  *
  * @since 1.9.3
  */
-@Singleton
-@Named( PgpSignatureAlgorithm.NAME )
-public class PgpSignatureAlgorithm
-        implements SignatureAlgorithm
+public interface SignatureAlgorithmManager
 {
-    public static final String NAME = "PGP";
-
-    @Override
-    public String getName()
-    {
-        return NAME;
-    }
-
-    @Override
-    public boolean isSignatureArtifact( Artifact artifact )
-    {
-        return artifact.getExtension().endsWith( ".asc" );
-    }
-
-    @Override
-    public List<Artifact> sign( Artifact artifact )
-    {
-        return Collections.emptyList();
-    }
+    /**
+     * Provides the {@link SignatureSigner} instance for given session, or {@code null} if no signing applied.
+     */
+    SignatureSigner getSignatureSigners( RepositorySystemSession session );
 }

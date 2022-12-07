@@ -19,29 +19,30 @@ package org.eclipse.aether.spi.signature;
  * under the License.
  */
 
-import java.util.Collection;
-
+import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 
 /**
- * Component performing selection of {@link SignatureAlgorithmFactory} based on known factory names.
- * Note: this component is NOT meant to be implemented or extended by client, is exposed ONLY to make clients
- * able to get {@link SignatureAlgorithmFactory} instances.
+ * Signature algorithm performing artifact signing.
  *
- * @noimplement This interface is not intended to be implemented by clients.
- * @noextend This interface is not intended to be extended by clients.
  * @since 1.9.3
  */
-public interface SignatureAlgorithmSelector
+public interface SignatureAlgorithmFactory
 {
     /**
-     * Returns a collection of all supported algorithms. This set represents all the algorithms supported by Resolver,
-     * and is NOT in any relation to current session configuration.
+     * Returns the algorithm name, usually used as key, never {@code null} value. The name is a standard name of
+     * algorithm (if applicable) or any other designator that is algorithm commonly referred with. Example: "PGP".
      */
-    Collection<SignatureAlgorithmFactory> getSignatureAlgorithmFactories();
+    String getName();
 
     /**
-     * Returns {@code true} if passed in artifact represents a signature belonging to any known factory.
+     * Returns {@code true} if passed in artifact represents a signature artifact produced by this algorithm.
      */
     boolean isSignatureArtifact( Artifact artifact );
+
+    /**
+     * Returns new {@link SignatureSigner} instance, or {@code null} if this instance cannot provide signer instance
+     * based on passed in session.
+     */
+    SignatureSigner signer( RepositorySystemSession session );
 }

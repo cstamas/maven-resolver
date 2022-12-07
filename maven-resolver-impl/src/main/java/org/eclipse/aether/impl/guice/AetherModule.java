@@ -42,6 +42,7 @@ import org.eclipse.aether.impl.RemoteRepositoryManager;
 import org.eclipse.aether.impl.RepositoryConnectorProvider;
 import org.eclipse.aether.impl.RepositoryEventDispatcher;
 import org.eclipse.aether.impl.RepositorySystemLifecycle;
+import org.eclipse.aether.impl.SignatureAlgorithmManager;
 import org.eclipse.aether.internal.impl.DefaultLocalPathPrefixComposerFactory;
 import org.eclipse.aether.internal.impl.DefaultRepositorySystemLifecycle;
 import org.eclipse.aether.internal.impl.LocalPathComposer;
@@ -64,6 +65,9 @@ import org.eclipse.aether.internal.impl.filter.DefaultRemoteRepositoryFilterMana
 import org.eclipse.aether.internal.impl.filter.GroupIdRemoteRepositoryFilterSource;
 import org.eclipse.aether.internal.impl.filter.PrefixesRemoteRepositoryFilterSource;
 import org.eclipse.aether.internal.impl.resolution.TrustedChecksumsArtifactResolverPostProcessor;
+import org.eclipse.aether.internal.impl.signature.DefaultSignatureAlgorithmManager;
+import org.eclipse.aether.internal.impl.signature.DefaultSignatureAlgorithmSelector;
+import org.eclipse.aether.internal.impl.signature.pgp.PgpSignatureAlgorithmFactory;
 import org.eclipse.aether.internal.impl.synccontext.DefaultSyncContextFactory;
 import org.eclipse.aether.internal.impl.synccontext.named.NamedLockFactoryAdapterFactoryImpl;
 import org.eclipse.aether.internal.impl.synccontext.named.NameMapper;
@@ -114,6 +118,8 @@ import org.eclipse.aether.spi.io.FileProcessor;
 import org.eclipse.aether.spi.localrepo.LocalRepositoryManagerFactory;
 import org.eclipse.aether.spi.log.LoggerFactory;
 import org.eclipse.aether.spi.resolution.ArtifactResolverPostProcessor;
+import org.eclipse.aether.spi.signature.SignatureAlgorithmFactory;
+import org.eclipse.aether.spi.signature.SignatureAlgorithmSelector;
 import org.eclipse.aether.spi.synccontext.SyncContextFactory;
 import org.slf4j.ILoggerFactory;
 
@@ -265,8 +271,28 @@ public class AetherModule
                 Names.named( PrefixesRemoteRepositoryFilterSource.NAME ) )
                 .to( PrefixesRemoteRepositoryFilterSource.class ).in( Singleton.class );
 
+        bind( SignatureAlgorithmManager.class )
+                .to( DefaultSignatureAlgorithmManager.class ).in( Singleton.class );
+        bind( SignatureAlgorithmSelector.class )
+                .to( DefaultSignatureAlgorithmSelector.class ).in( Singleton.class );
+
+        bind( SignatureAlgorithmFactory.class ).annotatedWith(
+                Names.named( PgpSignatureAlgorithmFactory.NAME ) )
+                .to( PgpSignatureAlgorithmFactory.class ).in( Singleton.class );
+
         install( new Slf4jModule() );
 
+    }
+
+    @Provides
+    @Singleton
+    Map<String, SignatureAlgorithmFactory> signatureAlgorithmFactories(
+            @Named( PgpSignatureAlgorithmFactory.NAME ) SignatureAlgorithmFactory pgp
+    )
+    {
+        Map<String, SignatureAlgorithmFactory> result = new HashMap<>();
+        result.put( PgpSignatureAlgorithmFactory.NAME, pgp );
+        return Collections.unmodifiableMap( result );
     }
 
     @Provides
