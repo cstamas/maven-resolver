@@ -35,6 +35,13 @@ import org.eclipse.aether.artifact.Artifact;
 public interface SignatureAlgorithmSelector
 {
     /**
+     * Returns factory for given algorithm name, or throws if algorithm not supported.
+     *
+     * @throws IllegalArgumentException if asked algorithm name is not supported.
+     */
+    SignatureAlgorithmFactory select( String algorithmName );
+
+    /**
      * Returns a collection of all supported algorithms. This set represents all the algorithms supported by Resolver,
      * and is NOT in any relation to current session configuration.
      */
