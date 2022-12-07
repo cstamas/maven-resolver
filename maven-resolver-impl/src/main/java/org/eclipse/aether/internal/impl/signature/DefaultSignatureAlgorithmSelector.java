@@ -34,6 +34,7 @@ import org.eclipse.aether.spi.signature.SignatureAlgorithmFactory;
 import org.eclipse.aether.spi.signature.SignatureAlgorithmSelector;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation.
@@ -59,6 +60,25 @@ public class DefaultSignatureAlgorithmSelector
     public DefaultSignatureAlgorithmSelector( Map<String, SignatureAlgorithmFactory> factories )
     {
         this.factories = requireNonNull( factories );
+    }
+
+    @Override
+    public SignatureAlgorithmFactory select( String algorithmName )
+    {
+        requireNonNull( algorithmName, "algorithmMame must not be null" );
+        SignatureAlgorithmFactory factory = factories.get( algorithmName );
+        if ( factory == null )
+        {
+            throw new IllegalArgumentException(
+                    String.format( "Unsupported signature algorithm %s, supported ones are %s",
+                            algorithmName,
+                            getSignatureAlgorithmFactories().stream()
+                                    .map( SignatureAlgorithmFactory::getName )
+                                    .collect( toList() )
+                    )
+            );
+        }
+        return factory;
     }
 
     @Override
