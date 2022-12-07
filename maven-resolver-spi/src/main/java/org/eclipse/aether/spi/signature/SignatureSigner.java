@@ -39,7 +39,9 @@ public interface SignatureSigner extends Closeable
      * {@code null}.
      * <p>
      * How artifacts are grouped, depends on how installing/deploying are configured. For example, these may come
-     * per-module, or at end in several collections (but still per module) or all
+     * per-module, or at end in several collections (but still per module) or all deployable at once.
+     * <p>
+     * It is guaranteed that passed in artifacts does not contain signature or checksum artifacts.
      */
     Collection<Artifact> sign( Collection<Artifact> artifacts );
 

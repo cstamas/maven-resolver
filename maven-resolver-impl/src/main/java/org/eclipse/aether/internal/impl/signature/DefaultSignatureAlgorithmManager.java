@@ -25,18 +25,24 @@ import javax.inject.Singleton;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.aether.MultiRuntimeException;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.impl.SignatureAlgorithmManager;
+import org.eclipse.aether.internal.impl.checksum.DefaultChecksumAlgorithmFactorySelector;
+import org.eclipse.aether.spi.connector.checksum.ChecksumAlgorithmFactorySelector;
 import org.eclipse.aether.spi.signature.SignatureAlgorithmFactory;
 import org.eclipse.aether.spi.signature.SignatureAlgorithmSelector;
 import org.eclipse.aether.spi.signature.SignatureSigner;
 import org.eclipse.aether.util.artifact.ArtifactIdUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -54,16 +60,21 @@ public class DefaultSignatureAlgorithmManager
 
     private final SignatureAlgorithmSelector signatureAlgorithmSelector;
 
+    private final ChecksumAlgorithmFactorySelector checksumAlgorithmFactorySelector;
+
     @Deprecated
     public DefaultSignatureAlgorithmManager()
     {
         this.signatureAlgorithmSelector = new DefaultSignatureAlgorithmSelector();
+        this.checksumAlgorithmFactorySelector = new DefaultChecksumAlgorithmFactorySelector();
     }
 
     @Inject
-    public DefaultSignatureAlgorithmManager( SignatureAlgorithmSelector signatureAlgorithmSelector )
+    public DefaultSignatureAlgorithmManager( SignatureAlgorithmSelector signatureAlgorithmSelector,
+                                             ChecksumAlgorithmFactorySelector checksumAlgorithmFactorySelector )
     {
         this.signatureAlgorithmSelector = requireNonNull( signatureAlgorithmSelector );
+        this.checksumAlgorithmFactorySelector = requireNonNull( checksumAlgorithmFactorySelector );
     }
 
     @Override
@@ -78,7 +89,8 @@ public class DefaultSignatureAlgorithmManager
             }
             else
             {
-                return new ManagedSigners( signers );
+                // TODO: close
+                return new ManagedSigners( signatureAlgorithmSelector, checksumAlgorithmFactorySelector, signers );
             }
         } );
 
@@ -113,10 +125,20 @@ public class DefaultSignatureAlgorithmManager
      */
     private static class ManagedSigners implements SignatureSigner
     {
+        private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+        private final SignatureAlgorithmSelector signatureAlgorithmSelector;
+
+        private final ChecksumAlgorithmFactorySelector checksumAlgorithmFactorySelector;
+
         private final Map<String, SignatureSigner> signers;
 
-        private ManagedSigners( Map<String, SignatureSigner> signers )
+        private ManagedSigners( SignatureAlgorithmSelector signatureAlgorithmSelector,
+                                ChecksumAlgorithmFactorySelector checksumAlgorithmFactorySelector,
+                                Map<String, SignatureSigner> signers )
         {
+            this.signatureAlgorithmSelector = signatureAlgorithmSelector;
+            this.checksumAlgorithmFactorySelector = checksumAlgorithmFactorySelector;
             this.signers = signers;
         }
 
@@ -124,6 +146,28 @@ public class DefaultSignatureAlgorithmManager
         public Collection<Artifact> sign( Collection<Artifact> artifacts )
         {
             requireNonNull( artifacts );
+            for ( Artifact artifact : artifacts )
+            {
+                if ( signatureAlgorithmSelector.isSignatureArtifact( artifact ) )
+                {
+                    logger.warn( "Signature artifacts found among artifacts to be signed; bailing out" );
+                    return Collections.emptyList();
+                }
+            }
+
+            ArrayList<Artifact> toBeSignedArtifacts = new ArrayList<>( artifacts );
+
+            // filter them if needed
+            Iterator<Artifact> iterator = toBeSignedArtifacts.iterator();
+            while ( iterator.hasNext() )
+            {
+                // TODO
+//                if ( checksumAlgorithmFactorySelector.isChecksumArtifact( iterator.next() ) )
+//                {
+//                    iterator.remove();
+//                }
+                iterator.next();
+            }
 
             // all the IDs of passed in artifacts
             HashSet<String> toBeSignedIds = new HashSet<>();
