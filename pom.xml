@@ -580,6 +580,7 @@
               <exclude>src/test/resources/**/*.txt</exclude>
               <exclude>src/test/resources/ssl/*-store</exclude>
               <exclude>.gitattributes</exclude>
+              <exclude>.mvn/**</exclude>
             </excludes>
           </configuration>
         </plugin>
