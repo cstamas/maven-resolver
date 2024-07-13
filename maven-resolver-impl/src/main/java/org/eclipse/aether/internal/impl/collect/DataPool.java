@@ -45,7 +45,6 @@ import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 import org.eclipse.aether.resolution.VersionRangeRequest;
 import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.util.ConfigUtils;
-import org.eclipse.aether.util.artifact.ArtifactIdUtils;
 import org.eclipse.aether.version.Version;
 import org.eclipse.aether.version.VersionConstraint;
 
@@ -234,10 +233,10 @@ public final class DataPool {
     }
 
     public static final class DescriptorKey {
-        private final String artifactKey;
+        private final Artifact artifact;
 
         private DescriptorKey(Artifact artifact) {
-            this.artifactKey = ArtifactIdUtils.toId(artifact);
+            this.artifact = artifact;
         }
 
         @Override
@@ -249,17 +248,17 @@ public final class DataPool {
                 return false;
             }
             DescriptorKey that = (DescriptorKey) o;
-            return Objects.equals(artifactKey, that.artifactKey);
+            return Objects.equals(artifact, that.artifact);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(artifactKey);
+            return Objects.hashCode(artifact);
         }
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{" + "artifactKey='" + artifactKey + '\'' + '}';
+            return getClass().getSimpleName() + "{" + "artifact='" + artifact + '\'' + '}';
         }
     }
 
