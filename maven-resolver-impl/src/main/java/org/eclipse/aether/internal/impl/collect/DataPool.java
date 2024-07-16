@@ -234,9 +234,11 @@ public final class DataPool {
 
     public static final class DescriptorKey {
         private final Artifact artifact;
+        private final int hashCode;
 
         private DescriptorKey(Artifact artifact) {
             this.artifact = artifact;
+            this.hashCode = buildHashCode();
         }
 
         @Override
@@ -253,6 +255,10 @@ public final class DataPool {
 
         @Override
         public int hashCode() {
+            return hashCode;
+        }
+
+        private int buildHashCode() {
             return Objects.hashCode(artifact);
         }
 
