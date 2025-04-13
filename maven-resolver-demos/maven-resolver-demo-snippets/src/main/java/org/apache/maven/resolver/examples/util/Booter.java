@@ -18,12 +18,14 @@
  */
 package org.apache.maven.resolver.examples.util;
 
-import java.nio.file.Path;
+import java.nio.file.FileSystem;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.RepositorySystemSession.SessionBuilder;
@@ -62,10 +64,12 @@ public class Booter {
     }
 
     public static SessionBuilder newRepositorySystemSession(RepositorySystem system) {
+        FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
         SessionBuilder result = new SessionBuilderSupplier(system)
                 .get()
                 .setSystemProperties(System.getProperties())
-                .withLocalRepositoryBaseDirectories(Path.of("target/local-repo"))
+                .withLocalRepositoryBaseDirectories(fs.getPath("local-repo"))
+                // .withLocalRepositoryBaseDirectories(Path.of("target/local-repo"))
                 .setRepositoryListener(new ConsoleRepositoryListener())
                 .setTransferListener(new ConsoleTransferListener())
                 .setConfigProperty("aether.generator.gpg.enabled", Boolean.TRUE.toString())
