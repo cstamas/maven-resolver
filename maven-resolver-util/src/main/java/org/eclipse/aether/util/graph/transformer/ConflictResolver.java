@@ -221,7 +221,7 @@ public final class ConflictResolver implements DependencyGraphTransformer {
             }
         }
 
-        State state = new State(node, conflictIds, partitions, cyclicPredecessors, context);
+        State state = new State(node, sortedConflictIds, conflictIds, partitions, cyclicPredecessors, context);
 
         // prepare] data structures for graph walk
         state.prepare();
@@ -233,7 +233,7 @@ public final class ConflictResolver implements DependencyGraphTransformer {
         state.finish();
 
         // earlier runs might have nuked all parents of the current conflict id, so it might not exist anymore
-        for (String conflictId : state.partitions.keySet()) {
+        for (String conflictId : state.sortedConflictIds) {
             ConflictContext ctx = state.conflictCtx.get(conflictId);
             state.versionSelector.selectVersion(ctx);
             if (ctx.winner == null) {
@@ -253,13 +253,13 @@ public final class ConflictResolver implements DependencyGraphTransformer {
                         NODE_DATA_ORIGINAL_OPTIONALITY, winner.getDependency().isOptional());
             }
             winner.setOptional(ctx.optional);
+
+            // remove losers
+            removeLosers(state, conflictId);
         }
 
         // record the winner so we can detect leftover losers during future graph walks
         state.winner();
-
-        // remove losers
-        removeLosers(state);
 
         // in case of cycles, trigger final graph walk to ensure all leftover losers are gone
         // if (!it.hasNext() && !conflictIdCycles.isEmpty() && state.conflictCtx.winner != null) {
@@ -279,7 +279,9 @@ public final class ConflictResolver implements DependencyGraphTransformer {
     }
 
     private boolean gatherConflictItems(DependencyNode node, State state) throws RepositoryException {
-        state.add(node);
+        if (node.getDependency() != null) {
+            state.add(node);
+        }
         String conflictId = state.conflictIds.get(node);
         if (state.push(node, conflictId)) {
             // found potential parent, no cycle and not visited before with the same derived scope, so recurse
@@ -294,13 +296,73 @@ public final class ConflictResolver implements DependencyGraphTransformer {
         return true;
     }
 
-    private static void removeLosers(State state) {
-        for (String conflictId : state.partitions.keySet()) {
-            ConflictItem winner = state.conflictCtx.get(conflictId).winner;
-            String winnerArtifactId = ArtifactIdUtils.toId(winner.node.getArtifact());
-            List<DependencyNode> previousParent = null;
-            ListIterator<DependencyNode> childIt = null;
-            HashSet<String> toRemoveIds = new HashSet<>();
+    private static void removeLosers(State state, String conflictId) {
+        ConflictItem winner = state.conflictCtx.get(conflictId).winner;
+        String winnerArtifactId = ArtifactIdUtils.toId(winner.node.getArtifact());
+        List<DependencyNode> previousParent = null;
+        ListIterator<DependencyNode> childIt = null;
+        HashSet<String> toRemoveIds = new HashSet<>();
+        List<ConflictItem> removedConflictItems = new ArrayList<>();
+        for (ConflictItem item : state.items.get(conflictId)) {
+            if (item == winner) {
+                continue;
+            }
+            if (item.parent != previousParent) {
+                childIt = item.parent.listIterator();
+                previousParent = item.parent;
+            }
+            while (childIt.hasNext()) {
+                DependencyNode child = childIt.next();
+                if (child == item.node) {
+                    removedConflictItems.add(item);
+
+                    // NONE: just remove it and done
+                    if (Verbosity.NONE == state.verbosity) {
+                        childIt.remove();
+                        break;
+                    }
+
+                    // STANDARD: doing extra bookkeeping to select "which nodes to remove"
+                    if (Verbosity.STANDARD == state.verbosity) {
+                        String childArtifactId = ArtifactIdUtils.toId(child.getArtifact());
+                        // if two IDs are equal, it means "there is nearest", not conflict per se.
+                        // In that case we do NOT allow this child to be removed (but remove others)
+                        // and this keeps us safe from iteration (and in general, version) ordering
+                        // as we explicitly leave out ID that is "nearest found" state.
+                        //
+                        // This tackles version ranges mostly, where ranges are turned into list of
+                        // several nodes in collector (as many were discovered, ie. from metadata), and
+                        // old code would just "mark" the first hit as conflict, and remove the rest,
+                        // even if rest could contain "more suitable" version, that is not conflicting/diverging.
+                        // This resulted in verbose mode transformed tree, that was misrepresenting things
+                        // for dependency convergence calculations: it represented state like parent node
+                        // depends on "wrong" version (diverge), while "right" version was present (but removed)
+                        // as well, as it was contained in parents version range.
+                        if (!Objects.equals(winnerArtifactId, childArtifactId)) {
+                            toRemoveIds.add(childArtifactId);
+                        }
+                    }
+
+                    // FULL: just record the facts
+                    DependencyNode loser = new DefaultDependencyNode(child);
+                    loser.setData(NODE_DATA_WINNER, winner.node);
+                    loser.setData(
+                            NODE_DATA_ORIGINAL_SCOPE, loser.getDependency().getScope());
+                    loser.setData(
+                            NODE_DATA_ORIGINAL_OPTIONALITY,
+                            loser.getDependency().isOptional());
+                    loser.setScope(item.getScopes().iterator().next());
+                    loser.setChildren(Collections.emptyList());
+                    childIt.set(loser);
+                    item.node = loser;
+                    break;
+                }
+            }
+        }
+
+        // 2nd pass to apply "standard" verbosity: leaving only 1 loser, but with care
+        if (Verbosity.STANDARD == state.verbosity && !toRemoveIds.isEmpty()) {
+            previousParent = null;
             for (ConflictItem item : state.items.get(conflictId)) {
                 if (item == winner) {
                     continue;
@@ -312,77 +374,33 @@ public final class ConflictResolver implements DependencyGraphTransformer {
                 while (childIt.hasNext()) {
                     DependencyNode child = childIt.next();
                     if (child == item.node) {
-                        // NONE: just remove it and done
-                        if (Verbosity.NONE == state.verbosity) {
+                        String childArtifactId = ArtifactIdUtils.toId(child.getArtifact());
+                        if (toRemoveIds.contains(childArtifactId)
+                                && relatedSiblingsCount(child.getArtifact(), item.parent) > 1) {
                             childIt.remove();
-                            break;
                         }
-
-                        // STANDARD: doing extra bookkeeping to select "which nodes to remove"
-                        if (Verbosity.STANDARD == state.verbosity) {
-                            String childArtifactId = ArtifactIdUtils.toId(child.getArtifact());
-                            // if two IDs are equal, it means "there is nearest", not conflict per se.
-                            // In that case we do NOT allow this child to be removed (but remove others)
-                            // and this keeps us safe from iteration (and in general, version) ordering
-                            // as we explicitly leave out ID that is "nearest found" state.
-                            //
-                            // This tackles version ranges mostly, where ranges are turned into list of
-                            // several nodes in collector (as many were discovered, ie. from metadata), and
-                            // old code would just "mark" the first hit as conflict, and remove the rest,
-                            // even if rest could contain "more suitable" version, that is not conflicting/diverging.
-                            // This resulted in verbose mode transformed tree, that was misrepresenting things
-                            // for dependency convergence calculations: it represented state like parent node
-                            // depends on "wrong" version (diverge), while "right" version was present (but removed)
-                            // as well, as it was contained in parents version range.
-                            if (!Objects.equals(winnerArtifactId, childArtifactId)) {
-                                toRemoveIds.add(childArtifactId);
-                            }
-                        }
-
-                        // FULL: just record the facts
-                        DependencyNode loser = new DefaultDependencyNode(child);
-                        loser.setData(NODE_DATA_WINNER, winner.node);
-                        loser.setData(
-                                NODE_DATA_ORIGINAL_SCOPE, loser.getDependency().getScope());
-                        loser.setData(
-                                NODE_DATA_ORIGINAL_OPTIONALITY,
-                                loser.getDependency().isOptional());
-                        loser.setScope(item.getScopes().iterator().next());
-                        loser.setChildren(Collections.emptyList());
-                        childIt.set(loser);
-                        item.node = loser;
                         break;
                     }
                 }
             }
+        }
 
-            // 2nd pass to apply "standard" verbosity: leaving only 1 loser, but with care
-            if (Verbosity.STANDARD == state.verbosity && !toRemoveIds.isEmpty()) {
-                previousParent = null;
-                for (ConflictItem item : state.items.get(conflictId)) {
-                    if (item == winner) {
-                        continue;
-                    }
-                    if (item.parent != previousParent) {
-                        childIt = item.parent.listIterator();
-                        previousParent = item.parent;
-                    }
-                    while (childIt.hasNext()) {
-                        DependencyNode child = childIt.next();
-                        if (child == item.node) {
-                            String childArtifactId = ArtifactIdUtils.toId(child.getArtifact());
-                            if (toRemoveIds.contains(childArtifactId)
-                                    && relatedSiblingsCount(child.getArtifact(), item.parent) > 1) {
-                                childIt.remove();
-                            }
-                            break;
-                        }
-                    }
+        // there might still be losers beneath the winner (e.g. in case of cycles)
+        // those will be nuked during future graph walks when we include the winner in the recursion
+
+        // rebalance: all the child needs to be removed from contexts to not have them considered
+        removedConflictItems.forEach(v -> removeChildrenFromContexts(state, v));
+    }
+
+    private static void removeChildrenFromContexts(State state, ConflictItem item) {
+        for (DependencyNode node : item.node.getChildren()) {
+            String childConflictItem = state.conflictIds.get(node);
+            for (ConflictItem childItem : state.items.get(childConflictItem)) {
+                if (childItem.node == node) {
+                    state.conflictCtx.get(childConflictItem).removeItem(childItem);
+                    removeChildrenFromContexts(state, childItem);
                 }
             }
-
-            // there might still be losers beneath the winner (e.g. in case of cycles)
-            // those will be nuked during future graph walks when we include the winner in the recursion
         }
     }
 
@@ -498,6 +516,11 @@ public final class ConflictResolver implements DependencyGraphTransformer {
         final Map<String, Collection<String>> potentialAncestorIds;
 
         /**
+         * The sorted conflictIds.
+         */
+        final List<String> sortedConflictIds;
+
+        /**
          * The output from the conflict marker
          */
         final Map<DependencyNode, String> conflictIds;
@@ -590,12 +613,14 @@ public final class ConflictResolver implements DependencyGraphTransformer {
 
         State(
                 DependencyNode root,
+                List<String> sortedConflictIds,
                 Map<DependencyNode, String> conflictIds,
                 Map<String, Collection<DependencyNode>> partitions,
                 Map<String, Collection<String>> cyclicPredecessors,
                 DependencyGraphTransformationContext context)
                 throws RepositoryException {
             this.root = root;
+            this.sortedConflictIds = sortedConflictIds;
             this.conflictIds = conflictIds;
             this.partitions = partitions;
             this.cyclicPredecessors = cyclicPredecessors;
@@ -1052,7 +1077,7 @@ public final class ConflictResolver implements DependencyGraphTransformer {
 
         final Map<DependencyNode, String> conflictIds;
 
-        final Collection<ConflictItem> items;
+        Collection<ConflictItem> items;
 
         String conflictId;
 
@@ -1128,6 +1153,19 @@ public final class ConflictResolver implements DependencyGraphTransformer {
          */
         public Collection<ConflictItem> getItems() {
             return items;
+        }
+
+        /**
+         * Removes item; used by "remove losers".
+         */
+        private boolean removeItem(ConflictItem item) {
+            if (items.contains(item) && items.size() > 1) {
+                List<ConflictItem> removed = new ArrayList<>(this.items);
+                removed.remove(item);
+                this.items = Collections.unmodifiableList(removed);
+                return true;
+            }
+            return false;
         }
 
         /**
