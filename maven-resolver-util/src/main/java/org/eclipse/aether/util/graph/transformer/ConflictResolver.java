@@ -261,6 +261,11 @@ public final class ConflictResolver implements DependencyGraphTransformer {
         // record the winner so we can detect leftover losers during future graph walks
         state.winner();
 
+        // kill cycles
+        if (state.verbosity == Verbosity.NONE) {
+            killCycles(node, new HashMap<>());
+        }
+
         // in case of cycles, trigger final graph walk to ensure all leftover losers are gone
         // if (!it.hasNext() && !conflictIdCycles.isEmpty() && state.conflictCtx.winner != null) {
         //    DependencyNode winner = state.conflictCtx.winner.node;
@@ -401,6 +406,19 @@ public final class ConflictResolver implements DependencyGraphTransformer {
                     removeChildrenFromContexts(state, childItem);
                 }
             }
+        }
+    }
+
+    private static boolean killCycles(DependencyNode node, Map<String, Boolean> stack) {
+        if (stack.put(ArtifactIdUtils.toId(node.getArtifact()), Boolean.TRUE) != null) {
+            return false;
+        } else {
+            for (Iterator<DependencyNode> it = node.getChildren().iterator(); it.hasNext(); ) {
+                if (!killCycles(it.next(), stack)) {
+                    it.remove();
+                }
+            }
+            return true;
         }
     }
 
