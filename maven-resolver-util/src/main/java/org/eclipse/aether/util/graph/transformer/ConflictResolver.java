@@ -686,7 +686,7 @@ public final class ConflictResolver implements DependencyGraphTransformer {
             this.potentialAncestorIds = new HashMap<>(partitions.size());
             this.resolvedIds = new HashMap<>(partitions.size());
             this.items = new IdentityHashMap<>(conflictIds.size());
-            this.infos = new HashMap<>(partitions.size());
+            this.infos = new IdentityHashMap<>(partitions.size());
             this.stack = new IdentityHashMap<>(64);
             this.parentNodes = new ArrayList<>(64);
             this.parentScopes = new ArrayList<>(64);
