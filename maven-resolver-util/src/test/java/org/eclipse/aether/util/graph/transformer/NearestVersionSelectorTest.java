@@ -23,6 +23,8 @@ import java.util.List;
 import org.eclipse.aether.collection.UnsolvableVersionConflictException;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.internal.test.util.DependencyGraphParser;
+import org.eclipse.aether.util.graph.visitor.DependencyGraphDumper;
+import org.eclipse.aether.util.graph.visitor.TreeDependencyVisitor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -149,7 +151,9 @@ public class NearestVersionSelectorTest extends AbstractDependencyGraphTransform
     void testCyclicGraph() throws Exception {
         DependencyNode root = parseResource("cycle.txt");
 
+        root.accept(new TreeDependencyVisitor(new DependencyGraphDumper(System.out::println)));
         assertSame(root, transform(root));
+        root.accept(new DependencyGraphDumper(System.out::println));
 
         assertEquals(2, root.getChildren().size());
         assertEquals(1, root.getChildren().get(0).getChildren().size());
