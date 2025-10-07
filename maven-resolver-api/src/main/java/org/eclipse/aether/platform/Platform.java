@@ -34,12 +34,10 @@ public interface Platform {
     /**
      * Platform mode of operation that defines how management rules are applied but also what happens in case of
      * "platform conflicts".
-     *
-     * @see #managementKey()
      */
     enum Mode {
         /**
-         * In this mode platform "only" makes sure that platform artifacts are aligned to one single selected platform.
+         * In this mode platform only makes sure that platform artifacts are aligned to one single selected platform.
          * There may be several advising platform present for same management key, and they will be subject to platform
          * mediation, and only one will "win". In this mode:
          * <ul>
@@ -58,18 +56,18 @@ public interface Platform {
          *     <li>provided checksums are processed strictly (fail the build if not matching)</li>
          * </ul>
          */
-        ENFORCED
+        ENFORCING
     }
 
     /**
-     * The platform representing (existing or not-existing/virtual) artifact.
+     * The platform identifier.
      */
-    Artifact artifact();
+    String identifier();
 
     /**
-     * The platform management key. If multiple platform share same key, they are "conflicting".
+     * The platform group this platform belongs to.
      */
-    String managementKey();
+    PlatformGroup group();
 
     /**
      * The platform name (for human consumption, like logging purposes).
@@ -85,6 +83,11 @@ public interface Platform {
      * Returns {@code true} if this platform manages given artifact.
      */
     boolean contains(Artifact artifact);
+
+    /**
+     * Returns all managed artifacts.
+     */
+    Collection<Artifact> getArtifacts();
 
     /**
      * Platform management for version.
