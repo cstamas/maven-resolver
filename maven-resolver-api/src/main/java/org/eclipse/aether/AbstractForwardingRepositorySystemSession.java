@@ -26,6 +26,7 @@ import org.eclipse.aether.collection.DependencyManager;
 import org.eclipse.aether.collection.DependencySelector;
 import org.eclipse.aether.collection.DependencyTraverser;
 import org.eclipse.aether.collection.VersionFilter;
+import org.eclipse.aether.platform.PlatformManager;
 import org.eclipse.aether.repository.AuthenticationSelector;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.LocalRepositoryManager;
@@ -166,6 +167,11 @@ public abstract class AbstractForwardingRepositorySystemSession implements Repos
     @Override
     public DependencyManager getDependencyManager() {
         return getSession().getDependencyManager();
+    }
+
+    @Override
+    public PlatformManager getPlatformManager() {
+        return getSession().getPlatformManager();
     }
 
     @Override
