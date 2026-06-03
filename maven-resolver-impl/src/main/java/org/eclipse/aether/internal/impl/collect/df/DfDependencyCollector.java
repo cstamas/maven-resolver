@@ -46,6 +46,7 @@ import org.eclipse.aether.internal.impl.collect.DataPool;
 import org.eclipse.aether.internal.impl.collect.DefaultDependencyCollectionContext;
 import org.eclipse.aether.internal.impl.collect.DefaultDependencyCycle;
 import org.eclipse.aether.internal.impl.collect.DefaultVersionFilterContext;
+import org.eclipse.aether.internal.impl.collect.DependencyCollectorChecker;
 import org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate;
 import org.eclipse.aether.internal.impl.collect.PremanagedDependency;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -75,8 +76,14 @@ public class DfDependencyCollector extends DependencyCollectorDelegate {
             RemoteRepositoryManager remoteRepositoryManager,
             ArtifactDescriptorReader artifactDescriptorReader,
             VersionRangeResolver versionRangeResolver,
-            Map<String, ArtifactDecoratorFactory> artifactDecoratorFactories) {
-        super(remoteRepositoryManager, artifactDescriptorReader, versionRangeResolver, artifactDecoratorFactories);
+            Map<String, ArtifactDecoratorFactory> artifactDecoratorFactories,
+            DependencyCollectorChecker dependencyCollectorChecker) {
+        super(
+                remoteRepositoryManager,
+                artifactDescriptorReader,
+                versionRangeResolver,
+                artifactDecoratorFactories,
+                dependencyCollectorChecker);
     }
 
     @SuppressWarnings("checkstyle:parameternumber")

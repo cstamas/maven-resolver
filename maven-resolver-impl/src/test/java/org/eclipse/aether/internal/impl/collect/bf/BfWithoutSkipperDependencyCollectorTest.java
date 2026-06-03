@@ -38,7 +38,8 @@ public class BfWithoutSkipperDependencyCollectorTest extends DependencyCollector
                 new StubRemoteRepositoryManager(),
                 artifactDescriptorReader,
                 new StubVersionRangeResolver(),
-                Collections.emptyMap());
+                Collections.emptyMap(),
+                NOOP);
     }
 
     @Override

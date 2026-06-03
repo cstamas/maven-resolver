@@ -36,7 +36,8 @@ public class DfDependencyCollectorTest extends DependencyCollectorDelegateTestSu
                 new StubRemoteRepositoryManager(),
                 artifactDescriptorReader,
                 new StubVersionRangeResolver(),
-                Collections.emptyMap());
+                Collections.emptyMap(),
+                NOOP);
     }
 
     @Override
