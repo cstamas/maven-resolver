@@ -31,6 +31,11 @@ import org.eclipse.aether.collection.DependencyCollectionException;
  */
 public interface DependencyCollectorChecker {
     /**
+     * A default "no op" implementation.
+     */
+    DependencyCollectorChecker NOOP = new DependencyCollectorChecker() {};
+
+    /**
      * Config property for collector checker suppression. Presence of this key will suppress collection checking.
      * This key is not meant for users, but to programmatically signal collection suppression.
      */

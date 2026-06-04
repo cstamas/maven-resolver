@@ -29,6 +29,7 @@ import org.eclipse.aether.graph.Exclusion;
 import org.eclipse.aether.impl.ArtifactDescriptorReader;
 import org.eclipse.aether.internal.impl.StubRemoteRepositoryManager;
 import org.eclipse.aether.internal.impl.StubVersionRangeResolver;
+import org.eclipse.aether.internal.impl.collect.DependencyCollectorChecker;
 import org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate;
 import org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegateTestSupport;
 import org.eclipse.aether.internal.test.util.DependencyGraphParser;
@@ -51,7 +52,7 @@ public class BfWithSkipperDependencyCollectorTest extends DependencyCollectorDel
                 artifactDescriptorReader,
                 new StubVersionRangeResolver(),
                 Collections.emptyMap(),
-                NOOP);
+                DependencyCollectorChecker.NOOP);
     }
 
     @Override

@@ -69,8 +69,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public abstract class DependencyCollectorDelegateTestSupport {
 
-    protected final DependencyCollectorChecker NOOP = new DependencyCollectorChecker() {};
-
     protected DefaultRepositorySystemSession session;
 
     protected DependencyGraphParser parser;

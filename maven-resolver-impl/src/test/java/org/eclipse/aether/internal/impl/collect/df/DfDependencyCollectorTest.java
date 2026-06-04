@@ -23,6 +23,7 @@ import java.util.Collections;
 import org.eclipse.aether.impl.ArtifactDescriptorReader;
 import org.eclipse.aether.internal.impl.StubRemoteRepositoryManager;
 import org.eclipse.aether.internal.impl.StubVersionRangeResolver;
+import org.eclipse.aether.internal.impl.collect.DependencyCollectorChecker;
 import org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate;
 import org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegateTestSupport;
 
@@ -37,7 +38,7 @@ public class DfDependencyCollectorTest extends DependencyCollectorDelegateTestSu
                 artifactDescriptorReader,
                 new StubVersionRangeResolver(),
                 Collections.emptyMap(),
-                NOOP);
+                DependencyCollectorChecker.NOOP);
     }
 
     @Override
