@@ -408,6 +408,7 @@ public interface RepositorySystemSession {
 
         /**
          * Sets the dependency collection checker, never {@code null}.
+         *
          * @param dependencyCollectionChecker The checker instance, may not be {@code null}.
          * @return The session for chaining, never {@code null}.
          */
