@@ -82,7 +82,10 @@ public final class OptionalDependencySelector implements DependencySelector {
     @Override
     public boolean selectDependency(Dependency dependency) {
         requireNonNull(dependency, "dependency cannot be null");
-        String key = ArtifactIdUtils.toId(dependency.getArtifact());
+        String key = null;
+        if (ignoredKeys != null || unselectedKeys != null) {
+            key = ArtifactIdUtils.toId(dependency.getArtifact());
+        }
         if (ignoredKeys != null) {
             if (ignoredKeys.contains(key)) {
                 return true;
