@@ -16,12 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.eclipse.aether.internal.impl.collect;
+package org.eclipse.aether.collection;
 
 import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.collection.CollectRequest;
-import org.eclipse.aether.collection.CollectResult;
-import org.eclipse.aether.collection.DependencyCollectionException;
 
 /**
  * Dependency collector checker. It is able to check dependency collection result, deem it "satisfiable" or
@@ -29,11 +26,11 @@ import org.eclipse.aether.collection.DependencyCollectionException;
  *
  * @since 2.0.19
  */
-public interface DependencyCollectorChecker {
+public interface DependencyCollectionChecker {
     /**
      * A default "no op" implementation.
      */
-    DependencyCollectorChecker NOOP = new DependencyCollectorChecker() {};
+    DependencyCollectionChecker NOOP = new DependencyCollectionChecker() {};
 
     /**
      * Config property for collector checker suppression. Presence of this key will suppress collection checking.

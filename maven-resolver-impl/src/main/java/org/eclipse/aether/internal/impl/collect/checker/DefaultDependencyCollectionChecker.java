@@ -33,11 +33,11 @@ import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.CollectResult;
+import org.eclipse.aether.collection.DependencyCollectionChecker;
 import org.eclipse.aether.collection.DependencyCollectionException;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.graph.DependencyVisitor;
 import org.eclipse.aether.impl.ArtifactDescriptorReader;
-import org.eclipse.aether.internal.impl.collect.DependencyCollectorChecker;
 import org.eclipse.aether.internal.impl.scope.OptionalDependencySelector;
 import org.eclipse.aether.resolution.ArtifactDescriptorException;
 import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
@@ -49,11 +49,11 @@ import org.eclipse.aether.util.ConfigUtils;
  */
 @Singleton
 @Named
-public class DefaultDependencyCollectorChecker implements DependencyCollectorChecker {
+public class DefaultDependencyCollectionChecker implements DependencyCollectionChecker {
     private final ArtifactDescriptorReader artifactDescriptorReader;
 
     @Inject
-    public DefaultDependencyCollectorChecker(ArtifactDescriptorReader artifactDescriptorReader) {
+    public DefaultDependencyCollectionChecker(ArtifactDescriptorReader artifactDescriptorReader) {
         this.artifactDescriptorReader = artifactDescriptorReader;
     }
 

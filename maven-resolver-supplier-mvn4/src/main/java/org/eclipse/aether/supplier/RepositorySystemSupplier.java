@@ -101,10 +101,8 @@ import org.eclipse.aether.internal.impl.checksum.SparseDirectoryTrustedChecksums
 import org.eclipse.aether.internal.impl.checksum.SummaryFileTrustedChecksumsSource;
 import org.eclipse.aether.internal.impl.checksum.TrustedToProvidedChecksumsSourceAdapter;
 import org.eclipse.aether.internal.impl.collect.DefaultDependencyCollector;
-import org.eclipse.aether.internal.impl.collect.DependencyCollectorChecker;
 import org.eclipse.aether.internal.impl.collect.DependencyCollectorDelegate;
 import org.eclipse.aether.internal.impl.collect.bf.BfDependencyCollector;
-import org.eclipse.aether.internal.impl.collect.checker.DefaultDependencyCollectorChecker;
 import org.eclipse.aether.internal.impl.collect.df.DfDependencyCollector;
 import org.eclipse.aether.internal.impl.filter.DefaultRemoteRepositoryFilterManager;
 import org.eclipse.aether.internal.impl.filter.FilteringPipelineRepositoryConnectorFactory;
@@ -883,16 +881,14 @@ public class RepositorySystemSupplier implements Supplier<RepositorySystem> {
                         remoteRepositoryManager,
                         artifactDescriptorReader,
                         versionRangeResolver,
-                        getArtifactDecoratorFactories(),
-                        getDependencyCollectorChecker()));
+                        getArtifactDecoratorFactories()));
         result.put(
                 BfDependencyCollector.NAME,
                 new BfDependencyCollector(
                         remoteRepositoryManager,
                         artifactDescriptorReader,
                         versionRangeResolver,
-                        getArtifactDecoratorFactories(),
-                        getDependencyCollectorChecker()));
+                        getArtifactDecoratorFactories()));
         return result;
     }
 
@@ -908,20 +904,6 @@ public class RepositorySystemSupplier implements Supplier<RepositorySystem> {
 
     protected DependencyCollector createDependencyCollector() {
         return new DefaultDependencyCollector(getDependencyCollectorDelegates());
-    }
-
-    private DependencyCollectorChecker dependencyCollectorChecker;
-
-    public final DependencyCollectorChecker getDependencyCollectorChecker() {
-        checkClosed();
-        if (dependencyCollectorChecker == null) {
-            dependencyCollectorChecker = createDependencyCollectorChecker();
-        }
-        return dependencyCollectorChecker;
-    }
-
-    protected DependencyCollectorChecker createDependencyCollectorChecker() {
-        return new DefaultDependencyCollectorChecker(getArtifactDescriptorReader());
     }
 
     private Map<String, ArtifactResolverPostProcessor> artifactResolverPostProcessors;

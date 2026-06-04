@@ -34,6 +34,7 @@ import org.eclipse.aether.RequestTrace;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.CollectResult;
+import org.eclipse.aether.collection.DependencyCollectionChecker;
 import org.eclipse.aether.collection.DependencyCollectionException;
 import org.eclipse.aether.collection.DependencyGraphTransformer;
 import org.eclipse.aether.collection.DependencyTraverser;
@@ -107,22 +108,17 @@ public abstract class DependencyCollectorDelegate implements DependencyCollector
 
     protected final Map<String, ArtifactDecoratorFactory> artifactDecoratorFactories;
 
-    protected final DependencyCollectorChecker dependencyCollectorChecker;
-
     protected DependencyCollectorDelegate(
             RemoteRepositoryManager remoteRepositoryManager,
             ArtifactDescriptorReader artifactDescriptorReader,
             VersionRangeResolver versionRangeResolver,
-            Map<String, ArtifactDecoratorFactory> artifactDecoratorFactories,
-            DependencyCollectorChecker dependencyCollectorChecker) {
+            Map<String, ArtifactDecoratorFactory> artifactDecoratorFactories) {
         this.remoteRepositoryManager =
                 requireNonNull(remoteRepositoryManager, "remote repository manager cannot be null");
         this.descriptorReader = requireNonNull(artifactDescriptorReader, "artifact descriptor reader cannot be null");
         this.versionRangeResolver = requireNonNull(versionRangeResolver, "version range resolver cannot be null");
         this.artifactDecoratorFactories =
                 requireNonNull(artifactDecoratorFactories, "artifact decorator factories cannot be null");
-        this.dependencyCollectorChecker =
-                requireNonNull(dependencyCollectorChecker, "dependency collector checker cannot be null");
     }
 
     @SuppressWarnings("checkstyle:methodlength")
@@ -135,6 +131,8 @@ public abstract class DependencyCollectorDelegate implements DependencyCollector
 
         final InternalScopeManager scopeManager = (InternalScopeManager) originalSession.getScopeManager();
         final RepositorySystemSession setUpSession = setUpSession(originalSession, request, scopeManager);
+        final DependencyCollectionChecker dependencyCollectionChecker =
+                originalSession.getDependencyCollectionChecker();
 
         final RequestTrace trace = RequestTrace.newChild(request.getTrace(), request);
 
@@ -148,7 +146,7 @@ public abstract class DependencyCollectorDelegate implements DependencyCollector
             final long time1 = System.nanoTime();
             runs.incrementAndGet();
 
-            RepositorySystemSession session = dependencyCollectorChecker.prepare(setUpSession, request);
+            RepositorySystemSession session = dependencyCollectionChecker.prepare(setUpSession, request);
             final DependencyTraverser depTraverser = session.getDependencyTraverser();
             final VersionFilter verFilter = session.getVersionFilter();
 
@@ -278,7 +276,7 @@ public abstract class DependencyCollectorDelegate implements DependencyCollector
             stats.put(getClass().getSimpleName() + ".collectTime", time2 - time1);
             stats.put(getClass().getSimpleName() + ".transformTime", time3 - time2);
 
-            finished = dependencyCollectorChecker.isSatisfactory(session, request, result);
+            finished = dependencyCollectionChecker.isSatisfactory(session, request, result);
         }
 
         stats.put(getClass().getSimpleName() + ".runs", runs.get());
