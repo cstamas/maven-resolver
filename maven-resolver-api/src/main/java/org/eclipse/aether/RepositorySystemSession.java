@@ -411,6 +411,7 @@ public interface RepositorySystemSession {
          *
          * @param dependencyCollectionChecker The checker instance, may not be {@code null}.
          * @return The session for chaining, never {@code null}.
+         * @since 2.0.19
          */
         SessionBuilder setDependencyCollectionChecker(DependencyCollectionChecker dependencyCollectionChecker);
 
