@@ -40,6 +40,9 @@ import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.util.ConfigUtils;
 import org.eclipse.aether.util.artifact.ArtifactIdUtils;
+import org.eclipse.aether.util.graph.manager.DependencyManagerUtils;
+import org.eclipse.aether.util.version.GenericVersionScheme;
+import org.eclipse.aether.version.Version;
 
 import static java.util.Objects.requireNonNull;
 
@@ -446,6 +449,17 @@ public final class PathConflictResolver extends ConflictResolver {
                     if (!dn.isManagedSubjectEnforced(DependencyManagement.Subject.OPTIONAL)) {
                         if (!this.optional && this.parent.optional) {
                             this.optional = true;
+                        }
+                    }
+                    if (dn.isManagedSubject(DependencyManagement.Subject.VERSION)
+                            && !dn.isManagedSubjectEnforced(DependencyManagement.Subject.VERSION)) {
+                        String premanagedVersion = DependencyManagerUtils.getPremanagedVersion(this.dn);
+                        if (premanagedVersion != null) {
+                            Version currentVersion = this.dn.getVersion();
+                            Version originalVersion = new GenericVersionScheme().parseVersion(premanagedVersion);
+                            if (currentVersion.compareTo(originalVersion) < 0) {
+                                this.dn.setArtifact(this.dn.getArtifact().setVersion(premanagedVersion));
+                            }
                         }
                     }
                 } else {
