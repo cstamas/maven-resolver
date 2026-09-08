@@ -106,6 +106,24 @@ public class EnhancedLocalRepositoryManagerFactory implements LocalRepositoryMan
 
     public static final boolean DEFAULT_VERIFY_REAL_PATH = true;
 
+    /**
+     * Whether to enable "legacy tracking fallback" in LRM. If starting "greenfield" with Resolver 2 enabled Maven,
+     * this should be {@code false}, but for smoother transition of users using Maven 3.9 or older versions, the default
+     * is {@code true}. When the local repository is shared across "older" and "newer" Maven versions (where "older"
+     * Maven versions are Resolver 1.x and "never" Maven versions are Resolver 2.x based), the preferred way is to
+     * enable this feature. On the other hand, if local repository is exclusively used by "newer" Maven versions,
+     * like 3.10 or above, for improved Repository cache poisoning protection, this configuration is recommended
+     * to be set to {@code false}.
+     *
+     * @configurationSource {@link RepositorySystemSession#getConfigProperties()}
+     * @configurationType {@link java.lang.Boolean}
+     * @configurationDefaultValue {@link #DEFAULT_LEGACY_TRACKING_FALLBACK}
+     * @since 2.0.23
+     */
+    public static final String CONFIG_PROP_LEGACY_TRACKING_FALLBACK = CONFIG_PROPS_PREFIX + "legacyTrackingFallback";
+
+    public static final boolean DEFAULT_LEGACY_TRACKING_FALLBACK = true;
+
     private float priority = 10.0f;
 
     private final LocalPathComposer localPathComposer;
@@ -141,6 +159,8 @@ public class EnhancedLocalRepositoryManagerFactory implements LocalRepositoryMan
                 || trackingFilename.contains("..")) {
             trackingFilename = DEFAULT_TRACKING_FILENAME;
         }
+        boolean legacyTrackingFallback =
+                ConfigUtils.getBoolean(session, DEFAULT_LEGACY_TRACKING_FALLBACK, CONFIG_PROP_LEGACY_TRACKING_FALLBACK);
 
         if ("".equals(repository.getContentType()) || "default".equals(repository.getContentType())) {
             try {
@@ -157,6 +177,7 @@ public class EnhancedLocalRepositoryManagerFactory implements LocalRepositoryMan
                                         ConfigurationProperties.REPOSITORY_SYSTEM_REPOSITORY_KEY_FUNCTION),
                                 CONFIG_PROP_TRACKING_REPOSITORY_KEY_FUNCTION),
                         trackingFilename,
+                        legacyTrackingFallback,
                         trackingFileManager,
                         localPathPrefixComposerFactory.createComposer(session));
             } catch (IOException e) {
