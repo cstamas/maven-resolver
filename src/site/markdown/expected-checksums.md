@@ -1,4 +1,5 @@
 # Expected Checksums
+
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -25,13 +26,12 @@ Checksums in Resolver provide integrity verification. Resolver determines the *c
 
 This page covers the different ways Resolver can retrieve the *expected checksum* for an artifact that it compares against the locally calculated checksum.
 
-
 ## Transport Checksum Strategies
 
-Resolver has three strategies for retrieving the expected checksum: *Provided*, *Remote Included*, and *Remote External*. Appending a checksum extension to the artifact URL is an example of the Remote External strategy. 
+Resolver has three strategies for retrieving the expected checksum: *Provided*, *Remote Included*, and *Remote External*. Appending a checksum extension to the artifact URL is an example of the Remote External strategy.
 The strategies differ in **how** Resolver gets the checksum.
 
-**Provided** checksums are supplied to the Resolver through the Resolver's Java API. Users can implement or install an SPI extension point that loads checksums. The checksums can load before any transport operation. 
+**Provided** checksums are supplied to the Resolver through the Resolver's Java API. Users can implement or install an SPI extension point that loads checksums. The checksums can load before any transport operation.
 Users can also use the trusted checksum SPI bundled with the Resolver implementation. The section "Trusted Checksums" below describes this approach.
 
 **Remote Included** checksums are part of the response that the artifact itself arrives in. Most modern repositories send checksums in the HTTP response headers. Maven Central sends the SHA-1 checksum as a hexadecimal string in the x-checksum-sha1 HTTP header.
@@ -40,7 +40,6 @@ Other repositories send similar HTTP headers.
 Resolver gets the content and the checksums in one HTTP request.
 
 **Remote External** checksums are separate resources in the remote repository. The remote repository stores them next to the artifact files. To get a Remote External checksum, Resolver sends a new HTTP GET request for the artifact checksum URL.  This is the artifact URL with an algorithm extension such as ".sha1" appended. For example, if the artifact URL is https://repo1.maven.org/maven2/xom/xom/1.3.9/xom-1.3.9.jar, then the SHA-1 checksum URL is https://repo1.maven.org/maven2/xom/xom/1.3.9/xom-1.3.9.jar.sha1, and the MD5 checksum URL is https://repo1.maven.org/maven2/xom/xom/1.3.9/xom-1.3.9.jar.md5.
-
 
 When retrieving an artifact, Resolver looks for a checksum in this order until it finds one:
 
@@ -54,10 +53,10 @@ Almost all repository managers and remote repositories send standard checksums i
 If any standard checksum algorithm is enabled, the Remote Included strategy usually finds a checksum. Then Resolver skips the Remote External strategy.
 
 Related configuration keys:
+
 * `aether.checksums.checksumAlgorithms` A comma-separated list of checksum algorithms. The order is important. The transport asks for the checksums in the specified order. The default is "SHA-1,MD5". The first available algorithm will be used. For example, if you prefer MD5 but are willing to use SHA-1, set `aether.checksums.checksumAlgorithms` to "MD5,SHA-1".
 
 In Maven 3.9.x and later, you can use the expression `${session.rootDirectory}/.mvn/checksums/` to store checksums alongside sources. `session.rootDirectory` becomes an absolute path. The path points to the root directory of the project. The `.mvn` directory is usually in the root directory.
-
 
 ### Provided Checksums
 
@@ -80,13 +79,12 @@ Resolver checks several unstandardized `X-` headers for checksums:
 Resolver detects all these headers and uses their values. You don't need to tell it in advance which variant to expect.
 
 Related configuration keys:
-* `aether.connector.basic.includedChecksums` to enable or disable Remote Included checksums.
 
+* `aether.connector.basic.includedChecksums` to enable or disable Remote Included checksums.
 
 ### Remote External checksums
 
 Remote External checksums are next to the payload file in the remote repository. For example, "lib.jar" and the checksum "lib.jar.sha1" are in the same directory. They are the oldest kind of Resolver checksums.
-
 
 ## Trusted Checksums
 
@@ -102,6 +100,7 @@ This helps when the user cannot trust the local repository because an unknown or
 You can record the checksums with the Trusted Checksum post-processor. For example, run it in a known and safe environment to record the current checksums. Distribute the produced checksum within your organization. Then the build fails if at some point in the future the artifact changes.
 
 Related configuration keys:
+
 * `aether.trustedChecksumsSource.*`
 * `aether.artifactResolver.postProcessor.trustedChecksums.*`
 
@@ -145,12 +144,120 @@ If you use Maven 3.9.x, the following procedure saves the summary checksum file 
 
 ### Sparse Directory Trusted Checksums Source
 
-This source mimics the Maven local repository layout. It stores the checksums in a similar layout.
+The Sparse Directory source stores trusted checksums in a directory structure that mirrors the Maven local repository layout. The configured base directory is the root of this sparse directory.
 
-The sparse directory can contain checksums for multiple algorithms. The file extension encodes the algorithm.
+The source is disabled by default. Enable it with:
+
+```sh
+-Daether.trustedChecksumsSource.sparseDirectory=true
+```
+
+By default, the sparse directory is `.checksums`, resolved relative to the local repository root. You can configure a different location with:
+
+```sh
+-Daether.trustedChecksumsSource.sparseDirectory.basedir=/path/to/checksums
+```
+
+The `originAware` option controls whether the source repository is included in the checksum path. It is enabled by default:
+
+```sh
+-Daether.trustedChecksumsSource.sparseDirectory.originAware=true
+```
+
+When origin-aware checksums are enabled, checksums from different source repositories are kept separate by including the repository key as the first path component.
+
+For an artifact, the remaining path follows the Maven local repository layout. The checksum algorithm is encoded by the file extension. For example, an artifact stored as:
+
+```text
+groupId/artifactId/version/artifact-version.jar
+```
+
+has a trusted checksum such as:
+
+```text
+<repository-key>/groupId/artifactId/version/artifact-version.jar.sha512
+```
+
+Without origin-aware checksums, the repository-key component is omitted.
+
+The same layout is used for metadata. The checksum path is derived from the metadata path and the checksum algorithm's file extension.
+
+#### Creating the Sparse Directory
+
+Trusted checksums can be initially generated by running the trusted checksum post-processor in recording mode. Recording is controlled by:
+
+```sh
+-Daether.artifactResolver.postProcessor.trustedChecksums.record=true
+```
+
+Recording mode calculates checksums for resolved artifacts and writes them to trusted checksum sources that support writing, including the Sparse Directory source.
+
+For example:
+
+```sh
+mvn clean install \
+  -Daether.trustedChecksumsSource.sparseDirectory=true \
+  -Daether.artifactResolver.postProcessor.trustedChecksums=true \
+  -Daether.artifactResolver.postProcessor.trustedChecksums.record=true
+```
+
+The checksum algorithms used for recording are configured with:
+
+```sh
+-Daether.artifactResolver.postProcessor.trustedChecksums.checksumAlgorithms=SHA-512
+```
+
+After recording, disable recording for normal builds:
+
+```sh
+mvn clean install \
+  -Daether.trustedChecksumsSource.sparseDirectory=true \
+  -Daether.artifactResolver.postProcessor.trustedChecksums=true \
+  -Daether.artifactResolver.postProcessor.trustedChecksums.checksumAlgorithms=SHA-512 \
+  -Daether.artifactResolver.postProcessor.trustedChecksums.failIfMissing=true
+```
+
+The generated checksum files can then be stored alongside the project sources or otherwise protected from modification.
+
+#### Verifying Trusted Checksums
+
+When trusted checksum verification is enabled, the trusted checksum post-processor obtains the expected checksums from the configured trusted checksum sources and compares them with checksums calculated from the resolved artifacts.
+
+Enable verification with:
+
+```sh
+-Daether.trustedChecksumsSource.sparseDirectory=true
+-Daether.artifactResolver.postProcessor.trustedChecksums=true
+```
+
+The algorithms used for verification are configured with:
+
+```sh
+-Daether.artifactResolver.postProcessor.trustedChecksums.checksumAlgorithms=SHA-512
+```
+
+If a trusted checksum is found, Resolver compares it with the calculated checksum. If they do not match, the artifact is treated as unresolved.
+
+The `failIfMissing` option controls the behavior when no trusted checksum is available:
+
+```sh
+-Daether.artifactResolver.postProcessor.trustedChecksums.failIfMissing=true
+```
+
+The algorithms configured for trusted checksum verification must be a subset of the algorithms configured with `aether.checksums.checksumAlgorithms`.
+
+#### Choosing Between Trusted Checksum Sources
+
+Resolver provides two trusted checksum sources: **Summary File** and **Sparse Directory**.
+
+Use the **Summary File** source when trusted checksums should be stored in compact summary files. Each summary file contains checksum and relative-path entries for one checksum algorithm and follows the GNU coreutils checksum format.
+
+Use the **Sparse Directory** source when trusted checksum files should follow the Maven local repository layout. This keeps each checksum close to the corresponding artifact or metadata path and supports separate checksum files for different algorithms.
+
+Both sources are independent of transport and can provide trusted checksums to the trusted checksum post-processor. Choose the source based on how the trusted checksum data should be organized and maintained.
 
 ### Notes On Using Trusted Checksums
 
-- Use the `--strict-checksums` flag to fail a build if the expected checksum of a downloaded artifact does not match the trusted checksum.
-- You can specify more than one checksum algorithm for the `aether.artifactResolver.postProcessor.trustedChecksums.checksumAlgorithms` system property. The listed checksums must be a subset of the checksums in `aether.checksums.checksumAlgorithms`.
-- Most dependency management tools do not update trusted checksum files. This is true if the files are stored in version control alongside the source code. We hope that these tools will support Maven trusted checksums in the near future.
+* Use the `--strict-checksums` flag to fail a build if the expected checksum of a downloaded artifact does not match the trusted checksum.
+* You can specify more than one checksum algorithm for the `aether.artifactResolver.postProcessor.trustedChecksums.checksumAlgorithms` system property. The listed checksums must be a subset of the checksums in `aether.checksums.checksumAlgorithms`.
+* Most dependency management tools do not update trusted checksum files. This is true if the files are stored in version control alongside the source code. We hope that these tools will support Maven trusted checksums in the near future.
