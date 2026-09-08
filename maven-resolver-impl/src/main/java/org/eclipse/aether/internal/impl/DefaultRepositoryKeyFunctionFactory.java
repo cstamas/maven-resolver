@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.eclipse.aether.ConfigurationProperties;
 import org.eclipse.aether.Keys;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -39,21 +38,6 @@ import static java.util.Objects.requireNonNull;
 @Named
 public class DefaultRepositoryKeyFunctionFactory implements RepositoryKeyFunctionFactory {
     /**
-     * Returns system-wide repository key function.
-     *
-     * @since 2.0.14
-     * @see #repositoryKeyFunction(Class, RepositorySystemSession, String, String)
-     */
-    @Override
-    public RepositoryKeyFunction systemRepositoryKeyFunction(RepositorySystemSession session) {
-        return repositoryKeyFunction(
-                DefaultRepositoryKeyFunctionFactory.class,
-                session,
-                ConfigurationProperties.DEFAULT_REPOSITORY_SYSTEM_REPOSITORY_KEY_FUNCTION,
-                ConfigurationProperties.REPOSITORY_SYSTEM_REPOSITORY_KEY_FUNCTION);
-    }
-
-    /**
      * Method that based on configuration returns the "repository key function". The returned function will be session
      * cached if session is equipped with cache, otherwise it will be non cached. Method never returns {@code null}.
      * Only the {@code configurationKey} parameter may be {@code null} in which case no configuration lookup happens
@@ -64,12 +48,12 @@ public class DefaultRepositoryKeyFunctionFactory implements RepositoryKeyFunctio
     @SuppressWarnings("unchecked")
     @Override
     public RepositoryKeyFunction repositoryKeyFunction(
-            Class<?> owner, RepositorySystemSession session, String defaultValue, String configurationKey) {
+            Class<?> owner, RepositorySystemSession session, String defaultValue, String... configurationKeys) {
         requireNonNull(session);
         requireNonNull(defaultValue);
         final RepositoryKeyFunction repositoryKeyFunction = RepositoryIdHelper.getRepositoryKeyFunction(
-                configurationKey != null
-                        ? ConfigUtils.getString(session, defaultValue, configurationKey)
+                configurationKeys != null
+                        ? ConfigUtils.getString(session, defaultValue, configurationKeys)
                         : defaultValue);
         if (session.getCache() != null) {
             // both are expensive methods; cache it in session (repo -> context -> ID)

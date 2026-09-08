@@ -35,6 +35,7 @@ import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.LocalRepositoryManager;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryKeyFunction;
+import org.eclipse.aether.util.repository.RepositoryIdHelper;
 
 import static java.util.Objects.requireNonNull;
 
@@ -47,17 +48,14 @@ class SimpleLocalRepositoryManager implements LocalRepositoryManager {
 
     private final LocalPathComposer localPathComposer;
 
-    private final RepositoryKeyFunction repositoryKeyFunction;
+    private final RepositoryKeyFunction simpleRepositoryKeyFunction;
 
-    SimpleLocalRepositoryManager(
-            Path basePath,
-            String type,
-            LocalPathComposer localPathComposer,
-            RepositoryKeyFunction repositoryKeyFunction) {
+    SimpleLocalRepositoryManager(Path basePath, String type, LocalPathComposer localPathComposer) {
         requireNonNull(basePath, "base directory cannot be null");
         repository = new LocalRepository(basePath.toAbsolutePath(), type);
         this.localPathComposer = requireNonNull(localPathComposer);
-        this.repositoryKeyFunction = requireNonNull(repositoryKeyFunction);
+        this.simpleRepositoryKeyFunction =
+                RepositoryIdHelper.getRepositoryKeyFunction(RepositoryIdHelper.RepositoryKeyType.SIMPLE.name());
     }
 
     @Override
@@ -88,7 +86,7 @@ class SimpleLocalRepositoryManager implements LocalRepositoryManager {
     public String getPathForRemoteMetadata(Metadata metadata, RemoteRepository repository, String context) {
         requireNonNull(metadata, "metadata cannot be null");
         requireNonNull(repository, "repository cannot be null");
-        return localPathComposer.getPathForMetadata(metadata, getRepositoryKey(repository, context));
+        return localPathComposer.getPathForMetadata(metadata, getSimpleRepositoryKey(repository, context));
     }
 
     /**
@@ -96,8 +94,8 @@ class SimpleLocalRepositoryManager implements LocalRepositoryManager {
      * {@code true}, in which case this method creates unique identifier based on ID and current configuration
      * of the remote repository (as it may change).
      */
-    protected String getRepositoryKey(RemoteRepository repository, String context) {
-        return repositoryKeyFunction.apply(repository, context);
+    protected String getSimpleRepositoryKey(RemoteRepository repository, String context) {
+        return simpleRepositoryKeyFunction.apply(repository, context);
     }
 
     @Override

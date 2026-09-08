@@ -64,7 +64,7 @@ import static java.util.Objects.requireNonNull;
  * The repository id component of a tracking key is produced by the tracking-scoped repository key function, which
  * is URL-qualified by default: two repositories that merely share an id but point at different URLs are tracked as
  * different origins (see
- * {@link EnhancedLocalRepositoryManagerFactory#CONFIG_PROP_TRACKING_REPOSITORY_KEY_FUNCTION}).
+ * {@link org.eclipse.aether.ConfigurationProperties#REPOSITORY_TRACKING_REPOSITORY_KEY_FUNCTION}).
  *
  * @see EnhancedLocalRepositoryManagerFactory
  */
@@ -97,7 +97,9 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
 
     private final String trackingFilename;
 
-    private final boolean legacyTrackingFallback;
+    private final boolean legacyTrackingFallbackRead;
+
+    private final boolean legacyTrackingFallbackWrite;
 
     private final TrackingFileManager trackingFileManager;
 
@@ -107,7 +109,7 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
      * Repository key function used solely for the provenance tracking entries (the repository component of the
      * keys in the tracking file); path composition keeps using the (system-wide) key function held by the
      * superclass. URL-qualified by default, so two repositories merely sharing an id are not treated as the same
-     * origin - see {@link EnhancedLocalRepositoryManagerFactory#CONFIG_PROP_TRACKING_REPOSITORY_KEY_FUNCTION}.
+     * origin - see {@link org.eclipse.aether.ConfigurationProperties#REPOSITORY_TRACKING_REPOSITORY_KEY_FUNCTION}.
      * Lookups of entries written under a different key function miss and fail safe: the artifact stays tracked
      * (so the untracked inter-op fallback in {@link #checkFind} does not accept it) but unavailable, forcing a
      * checksum-validated re-fetch.
@@ -141,17 +143,18 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
     EnhancedLocalRepositoryManager(
             Path basedir,
             LocalPathComposer localPathComposer,
-            RepositoryKeyFunction repositoryKeyFunction,
             RepositoryKeyFunction trackingRepositoryKeyFunction,
             String trackingFilename,
-            boolean legacyTrackingFallback,
+            boolean legacyTrackingFallbackRead,
+            boolean legacyTrackingFallbackWrite,
             TrackingFileManager trackingFileManager,
             LocalPathPrefixComposer localPathPrefixComposer)
             throws IOException {
-        super(basedir, "enhanced", localPathComposer, repositoryKeyFunction);
+        super(basedir, "enhanced", localPathComposer);
         this.trackingRepositoryKeyFunction = requireNonNull(trackingRepositoryKeyFunction);
         this.trackingFilename = requireNonNull(trackingFilename);
-        this.legacyTrackingFallback = legacyTrackingFallback;
+        this.legacyTrackingFallbackRead = legacyTrackingFallbackRead;
+        this.legacyTrackingFallbackWrite = legacyTrackingFallbackWrite;
         this.trackingFileManager = requireNonNull(trackingFileManager);
         this.localPathPrefixComposer = requireNonNull(localPathPrefixComposer);
         // a fresh local repository does not exist yet; toRealPath() requires it to
@@ -307,13 +310,13 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
                 result.setRepository(repository);
                 return true;
             }
-            if (legacyTrackingFallback) {
+            if (legacyTrackingFallbackRead) {
                 // Backward compatibility fallback: if the tracking key function is URL-qualified (e.g. nid_hurl)
                 // but the tracking file was written by an older resolver using the system-wide key function
                 // (e.g. nid, producing ID-only entries like "artifact>central="), the URL-qualified lookup above
                 // misses. Try the system-wide key function as a fallback: if it matches, the artifact was genuinely
                 // downloaded from this repository under the old key scheme. Accept it and log a migration notice.
-                String legacyKey = getRepositoryKey(repository, context);
+                String legacyKey = getSimpleRepositoryKey(repository, context);
                 if (!legacyKey.equals(trackingKey) && props.get(getKey(path, legacyKey)) != null) {
                     LOGGER.debug(
                             "Accepting locally cached artifact {} via legacy tracking key '{}'"
@@ -354,6 +357,9 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
         if (contexts != null) {
             for (String context : contexts) {
                 keys.add(getTrackingRepositoryKey(repository, context));
+                if (legacyTrackingFallbackWrite) {
+                    keys.add(getSimpleRepositoryKey(repository, context));
+                }
             }
         }
 
@@ -418,7 +424,7 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
 
     /**
      * Returns the tracking key of given repository, derived with the tracking-scoped key function (URL-qualified
-     * by default). Deliberately distinct from {@link #getRepositoryKey(RemoteRepository, String)}, which follows
+     * by default). Deliberately distinct from {@link #getSimpleRepositoryKey(RemoteRepository, String)}, which follows
      * the system-wide key function and is used for path composition: tracking must bind an artifact to the full
      * identity of its origin, while on-disk layout and repository aggregation identity stay unchanged.
      */

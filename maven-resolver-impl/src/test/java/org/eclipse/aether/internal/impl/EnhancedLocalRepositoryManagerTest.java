@@ -112,9 +112,9 @@ public class EnhancedLocalRepositoryManagerTest {
                 basedir.toPath(),
                 new DefaultLocalPathComposer(),
                 RepositoryIdHelper::simpleRepositoryKey,
-                RepositoryIdHelper::simpleRepositoryKey,
                 "_remote.repositories",
                 true,
+                false,
                 trackingFileManager,
                 new DefaultLocalPathPrefixComposerFactory(new DefaultRepositoryKeyFunctionFactory())
                         .createComposer(session));
@@ -411,10 +411,10 @@ public class EnhancedLocalRepositoryManagerTest {
         return new EnhancedLocalRepositoryManager(
                 basedir.toPath(),
                 new DefaultLocalPathComposer(),
-                RepositoryIdHelper::simpleRepositoryKey,
                 RepositoryIdHelper.getRepositoryKeyFunction("nid_hurl"),
                 "_remote.repositories",
                 true,
+                false,
                 trackingFileManager,
                 new DefaultLocalPathPrefixComposerFactory(new DefaultRepositoryKeyFunctionFactory())
                         .createComposer(session));
@@ -426,7 +426,8 @@ public class EnhancedLocalRepositoryManagerTest {
         addRemoteArtifact(artifact);
 
         // the repository the artifact really came from still satisfies the lookup
-        LocalArtifactRequest request = new LocalArtifactRequest(artifact, Arrays.asList(repository), testContext);
+        LocalArtifactRequest request =
+                new LocalArtifactRequest(artifact, Collections.singletonList(repository), testContext);
         LocalArtifactResult result = manager.find(session, request);
         assertTrue(result.isAvailable());
         assertEquals(repository, result.getRepository());
@@ -436,7 +437,7 @@ public class EnhancedLocalRepositoryManagerTest {
         // the impostor would not satisfy the trusted repository)
         RemoteRepository impostor =
                 new RemoteRepository.Builder(repository.getId(), "default", "https://impostor.invalid/repo").build();
-        request = new LocalArtifactRequest(artifact, Arrays.asList(impostor), testContext);
+        request = new LocalArtifactRequest(artifact, Collections.singletonList(impostor), testContext);
         result = manager.find(session, request);
         assertFalse(result.isAvailable());
     }
@@ -456,7 +457,8 @@ public class EnhancedLocalRepositoryManagerTest {
         // backward-compatible fallback: the legacy ID-only key matches the system-wide key function
         // for the request repository, so the artifact is accepted (avoiding a full re-download) and
         // the origin repository is correctly reported
-        LocalArtifactRequest request = new LocalArtifactRequest(artifact, Arrays.asList(repository), testContext);
+        LocalArtifactRequest request =
+                new LocalArtifactRequest(artifact, Collections.singletonList(repository), testContext);
         LocalArtifactResult result = manager.find(session, request);
         assertTrue(result.isAvailable());
         assertEquals(repository, result.getRepository());
@@ -475,7 +477,8 @@ public class EnhancedLocalRepositoryManagerTest {
 
         // even with legacy fallback, an entry for a different repository id must not be accepted:
         // the artifact is tracked (not untracked) and none of the keys match — unavailable
-        LocalArtifactRequest request = new LocalArtifactRequest(artifact, Arrays.asList(repository), testContext);
+        LocalArtifactRequest request =
+                new LocalArtifactRequest(artifact, Collections.singletonList(repository), testContext);
         assertFalse(manager.find(session, request).isAvailable());
     }
 }

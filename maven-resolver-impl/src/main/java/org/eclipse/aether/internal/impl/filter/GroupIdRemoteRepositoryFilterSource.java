@@ -52,8 +52,6 @@ import org.eclipse.aether.spi.io.PathProcessor;
 import org.eclipse.aether.spi.remoterepo.RepositoryKeyFunctionFactory;
 import org.eclipse.aether.spi.resolution.ArtifactResolverPostProcessor;
 import org.eclipse.aether.util.ConfigUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.util.Objects.requireNonNull;
 
@@ -167,8 +165,6 @@ public final class GroupIdRemoteRepositoryFilterSource extends RemoteRepositoryF
 
     static final String GROUP_ID_FILE_SUFFIX = ".txt";
 
-    private final Logger logger = LoggerFactory.getLogger(GroupIdRemoteRepositoryFilterSource.class);
-
     private final RepositorySystemLifecycle repositorySystemLifecycle;
 
     private final PathProcessor pathProcessor;
@@ -254,7 +250,7 @@ public final class GroupIdRemoteRepositoryFilterSource extends RemoteRepositoryF
                 if (artifactResult.isResolved() && artifactResult.getRepository() instanceof RemoteRepository) {
                     RemoteRepository remoteRepository = (RemoteRepository) artifactResult.getRepository();
                     if (isRepositoryFilteringEnabled(session, remoteRepository)) {
-                        ruleFile(session, remoteRepository); // populate it; needed for save
+                        ruleFile(session, remoteRepository, false); // populate it; needed for save
                         String line = "=" + artifactResult.getArtifact().getGroupId();
                         RemoteRepository normalized = normalizeRemoteRepository(session, remoteRepository);
                         recordedRules(session)
@@ -274,14 +270,28 @@ public final class GroupIdRemoteRepositoryFilterSource extends RemoteRepositoryF
         }
     }
 
-    private Path ruleFile(RepositorySystemSession session, RemoteRepository remoteRepository) {
-        return ruleFiles(session)
-                .computeIfAbsent(
-                        normalizeRemoteRepository(session, remoteRepository),
-                        r -> getBasedir(session, LOCAL_REPO_PREFIX_DIR, CONFIG_PROP_BASEDIR, false)
-                                .resolve(GROUP_ID_FILE_PREFIX
-                                        + repositoryKey(session, remoteRepository)
-                                        + GROUP_ID_FILE_SUFFIX));
+    /**
+     * Returns the {@link Path} of the user provided rule file. If {@code forLoad} is {@code true}, returns non-{@code null}
+     * Path ONLY if file found and is readable, otherwise it returns {@code null}. If {@code forLoad} is {@code false},
+     * then it returns "most specific" user provided file (for saving purposes).
+     */
+    private Path ruleFile(RepositorySystemSession session, RemoteRepository remoteRepository, boolean forLoad) {
+        return ruleFiles(session).computeIfAbsent(normalizeRemoteRepository(session, remoteRepository), r -> {
+            for (String key : repositoryKeys(session, remoteRepository)) {
+                Path ruleFile = getBasedir(session, LOCAL_REPO_PREFIX_DIR, CONFIG_PROP_BASEDIR, false)
+                        .resolve(GROUP_ID_FILE_PREFIX + key + GROUP_ID_FILE_SUFFIX);
+                if (!forLoad) {
+                    // return most specific
+                    return ruleFile;
+                }
+                if (Files.isReadable(ruleFile)) {
+                    // return if exists/readable
+                    return ruleFile;
+                }
+            }
+            // none exists
+            return null;
+        });
     }
 
     private GroupTree cacheRules(RepositorySystemSession session, RemoteRepository remoteRepository) {
@@ -295,8 +305,8 @@ public final class GroupIdRemoteRepositoryFilterSource extends RemoteRepositoryF
 
     private GroupTree loadRepositoryRules(RepositorySystemSession session, RemoteRepository remoteRepository) {
         if (isRepositoryFilteringEnabled(session, remoteRepository)) {
-            Path filePath = ruleFile(session, remoteRepository);
-            if (Files.isReadable(filePath)) {
+            Path filePath = ruleFile(session, remoteRepository, true);
+            if (filePath != null) {
                 try (Stream<String> lines = Files.lines(filePath, StandardCharsets.UTF_8)) {
                     GroupTree groupTree =
                             GroupTree.create(filePath.getFileName().toString());

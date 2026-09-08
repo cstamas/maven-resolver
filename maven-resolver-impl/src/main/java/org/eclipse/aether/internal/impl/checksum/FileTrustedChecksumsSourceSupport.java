@@ -60,21 +60,6 @@ public abstract class FileTrustedChecksumsSourceSupport implements TrustedChecks
     protected static final String CONFIG_PROPS_PREFIX =
             ConfigurationProperties.PREFIX_AETHER + "trustedChecksumsSource.";
 
-    /**
-     * <b>Experimental:</b> Configuration for "repository key" function.
-     * Note: repository key functions other than "nid" produce repository keys will be <em>way different
-     * that those produced with previous versions or without this option enabled</em>. Checksum source uses this key
-     * function to lay down and look up files to use in sources.
-     *
-     * @since 2.0.14
-     * @configurationSource {@link RepositorySystemSession#getConfigProperties()}
-     * @configurationType {@link java.lang.String}
-     * @configurationDefaultValue {@link #DEFAULT_REPOSITORY_KEY_FUNCTION}
-     */
-    public static final String CONFIG_PROP_REPOSITORY_KEY_FUNCTION = CONFIG_PROPS_PREFIX + "repositoryKeyFunction";
-
-    public static final String DEFAULT_REPOSITORY_KEY_FUNCTION = "nid";
-
     private final RepositoryKeyFunctionFactory repositoryKeyFunctionFactory;
 
     protected FileTrustedChecksumsSourceSupport(RepositoryKeyFunctionFactory repositoryKeyFunctionFactory) {
@@ -200,11 +185,7 @@ public abstract class FileTrustedChecksumsSourceSupport implements TrustedChecks
     protected String repositoryKey(RepositorySystemSession session, ArtifactRepository artifactRepository) {
         if (artifactRepository instanceof RemoteRepository) {
             return repositoryKeyFunctionFactory
-                    .repositoryKeyFunction(
-                            FileTrustedChecksumsSourceSupport.class,
-                            session,
-                            DEFAULT_REPOSITORY_KEY_FUNCTION,
-                            CONFIG_PROP_REPOSITORY_KEY_FUNCTION)
+                    .trackingRepositoryKeyFunction(session)
                     .apply((RemoteRepository) artifactRepository, null);
         } else {
             return artifactRepository.getId();

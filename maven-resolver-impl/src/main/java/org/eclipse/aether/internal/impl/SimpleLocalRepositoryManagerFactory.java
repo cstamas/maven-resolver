@@ -28,7 +28,6 @@ import org.eclipse.aether.repository.LocalRepositoryManager;
 import org.eclipse.aether.repository.NoLocalRepositoryManagerException;
 import org.eclipse.aether.spi.localrepo.LocalRepositoryManagerFactory;
 import org.eclipse.aether.spi.remoterepo.RepositoryKeyFunctionFactory;
-import org.eclipse.aether.util.repository.RepositoryIdHelper;
 
 import static java.util.Objects.requireNonNull;
 
@@ -42,14 +41,12 @@ public class SimpleLocalRepositoryManagerFactory implements LocalRepositoryManag
     private float priority;
 
     private final LocalPathComposer localPathComposer;
-    private final RepositoryKeyFunctionFactory repositoryKeyFunctionFactory;
 
     /**
      * No-arg constructor, as "simple" local repository is meant mainly for use in tests.
      */
     public SimpleLocalRepositoryManagerFactory() {
         this.localPathComposer = new DefaultLocalPathComposer();
-        this.repositoryKeyFunctionFactory = new DefaultRepositoryKeyFunctionFactory();
     }
 
     @Inject
@@ -57,7 +54,6 @@ public class SimpleLocalRepositoryManagerFactory implements LocalRepositoryManag
             final LocalPathComposer localPathComposer,
             final RepositoryKeyFunctionFactory repositoryKeyFunctionFactory) {
         this.localPathComposer = requireNonNull(localPathComposer);
-        this.repositoryKeyFunctionFactory = requireNonNull(repositoryKeyFunctionFactory);
     }
 
     @Override
@@ -67,15 +63,7 @@ public class SimpleLocalRepositoryManagerFactory implements LocalRepositoryManag
         requireNonNull(repository, "repository cannot be null");
 
         if ("".equals(repository.getContentType()) || "simple".equals(repository.getContentType())) {
-            return new SimpleLocalRepositoryManager(
-                    repository.getBasePath(),
-                    "simple",
-                    localPathComposer,
-                    repositoryKeyFunctionFactory.repositoryKeyFunction(
-                            SimpleLocalRepositoryManagerFactory.class,
-                            session,
-                            RepositoryIdHelper.RepositoryKeyType.SIMPLE.name(),
-                            null));
+            return new SimpleLocalRepositoryManager(repository.getBasePath(), "simple", localPathComposer);
         } else {
             throw new NoLocalRepositoryManagerException(repository);
         }

@@ -621,6 +621,32 @@ public final class ConfigurationProperties {
     public static final String DEFAULT_REPOSITORY_SYSTEM_REPOSITORY_KEY_FUNCTION = "nid";
 
     /**
+     * Repository key function used for the provenance tracking entries this local repository manager writes and
+     * consults, and for nothing else. With an ID-only key, "came from
+     * repository X" means X's possibly colliding label: a repository declared in an untrusted (for example,
+     * transitively resolved) POM under the same ID as a trusted repository would be tracked as the same origin and
+     * could poison a shared local repository. The default is therefore the URL-qualified {@code "nid_hurl"}
+     * function, scoped to tracking entries only: repository identity everywhere else (repository aggregation and
+     * mirror merging, artifact and metadata path composition, split local repository prefixes) keeps following the
+     * system-wide key function, whose default is unchanged - so no aggregation semantics change and no local
+     * repository re-layout occurs. If the system-wide function
+     * {@link #REPOSITORY_SYSTEM_REPOSITORY_KEY_FUNCTION} is explicitly configured, tracking
+     * follows it (all consumers stay on one function, and setting it to {@code "nid"} restores the legacy ID-only
+     * tracking); this property, when set, overrides both. Tracking entries written under a different function than
+     * the active one never match a lookup and never enable the untracked-file fallback: affected artifacts are
+     * simply treated as locally unavailable and re-fetched (with checksum validation) once.
+     *
+     * @since 2.0.23
+     * @configurationSource {@link RepositorySystemSession#getConfigProperties()}
+     * @configurationType {@link java.lang.String}
+     * @configurationDefaultValue {@link #DEFAULT_REPOSITORY_TRACKING_REPOSITORY_KEY_FUNCTION}
+     */
+    public static final String REPOSITORY_TRACKING_REPOSITORY_KEY_FUNCTION =
+            PREFIX_SYSTEM + "trackingRepositoryKeyFunction";
+
+    public static final String DEFAULT_REPOSITORY_TRACKING_REPOSITORY_KEY_FUNCTION = "nid_hurl";
+
+    /**
      * A flag indicating whether version scheme cache statistics should be printed on JVM shutdown.
      * This is useful for analyzing cache performance and effectiveness in development and testing scenarios.
      *
