@@ -108,7 +108,9 @@ public class EnhancedLocalRepositoryManagerFactoryTest {
     }
 
     @Test
-    void trackingKeyFunctionDoesNotAffectPathComposition() throws Exception {
+    void trackingKeyFunctionDoesAffectPathComposition() throws Exception {
+        // artifacts: not affected
+        // metadata: are affected (ie. was maven-metadata-central.xml that would clash)
         LocalRepositoryManager manager = newManager();
         Artifact artifact = new DefaultArtifact("gid:aid:1.0");
 
@@ -117,7 +119,7 @@ public class EnhancedLocalRepositoryManagerFactoryTest {
         String urlHash = StringDigestUtil.sha1(repository.getUrl());
         assertFalse(
                 manager.getPathForRemoteArtifact(artifact, repository, context).contains(urlHash));
-        assertFalse(manager.getPathForRemoteMetadata(
+        assertTrue(manager.getPathForRemoteMetadata(
                         new DefaultMetadata("gid", "aid", "1.0", "maven-metadata.xml", Metadata.Nature.RELEASE),
                         repository,
                         context)

@@ -46,9 +46,9 @@ class SimpleLocalRepositoryManager implements LocalRepositoryManager {
 
     private final LocalRepository repository;
 
-    private final LocalPathComposer localPathComposer;
+    protected final LocalPathComposer localPathComposer;
 
-    private final RepositoryKeyFunction simpleRepositoryKeyFunction;
+    protected final RepositoryKeyFunction simpleRepositoryKeyFunction;
 
     SimpleLocalRepositoryManager(Path basePath, String type, LocalPathComposer localPathComposer) {
         requireNonNull(basePath, "base directory cannot be null");
@@ -86,16 +86,7 @@ class SimpleLocalRepositoryManager implements LocalRepositoryManager {
     public String getPathForRemoteMetadata(Metadata metadata, RemoteRepository repository, String context) {
         requireNonNull(metadata, "metadata cannot be null");
         requireNonNull(repository, "repository cannot be null");
-        return localPathComposer.getPathForMetadata(metadata, getSimpleRepositoryKey(repository, context));
-    }
-
-    /**
-     * Returns {@link RemoteRepository#getId()}, unless {@link RemoteRepository#isRepositoryManager()} returns
-     * {@code true}, in which case this method creates unique identifier based on ID and current configuration
-     * of the remote repository (as it may change).
-     */
-    protected String getSimpleRepositoryKey(RemoteRepository repository, String context) {
-        return simpleRepositoryKeyFunction.apply(repository, context);
+        return localPathComposer.getPathForMetadata(metadata, simpleRepositoryKeyFunction.apply(repository, context));
     }
 
     @Override

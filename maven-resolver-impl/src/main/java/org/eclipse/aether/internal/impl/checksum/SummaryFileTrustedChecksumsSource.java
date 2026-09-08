@@ -188,7 +188,8 @@ public final class SummaryFileTrustedChecksumsSource extends FileTrustedChecksum
             List<ChecksumAlgorithmFactory> checksumAlgorithmFactories) {
         return doGetTrustedPathChecksums(
                 session,
-                localPathComposer.getPathForMetadata(metadata, repositoryKey(session, artifactRepository)),
+                localPathComposer.getPathForMetadata(
+                        metadata, repositoryKey(session, artifactRepository).get(0)),
                 artifactRepository,
                 checksumAlgorithmFactories);
     }
@@ -206,17 +207,16 @@ public final class SummaryFileTrustedChecksumsSource extends FileTrustedChecksum
         final Path basedir = getBasedir(session, LOCAL_REPO_PREFIX_DIR, CONFIG_PROP_BASEDIR, false);
         if (Files.isDirectory(basedir)) {
             final boolean originAware = isOriginAware(session);
-            for (ChecksumAlgorithmFactory checksumAlgorithmFactory : checksumAlgorithmFactories) {
-                Path summaryFile = summaryFile(
-                        basedir,
-                        originAware,
-                        repositoryKey(session, artifactRepository),
-                        checksumAlgorithmFactory.getFileExtension());
-                ConcurrentHashMap<String, String> algorithmChecksums =
-                        checksums.computeIfAbsent(summaryFile, f -> loadProvidedChecksums(summaryFile));
-                String checksum = algorithmChecksums.get(path);
-                if (checksum != null) {
-                    result.put(checksumAlgorithmFactory.getName(), checksum);
+            for (String repoKey : repositoryKey(session, artifactRepository)) {
+                for (ChecksumAlgorithmFactory checksumAlgorithmFactory : checksumAlgorithmFactories) {
+                    Path summaryFile =
+                            summaryFile(basedir, originAware, repoKey, checksumAlgorithmFactory.getFileExtension());
+                    ConcurrentHashMap<String, String> algorithmChecksums =
+                            checksums.computeIfAbsent(summaryFile, f -> loadProvidedChecksums(summaryFile));
+                    String checksum = algorithmChecksums.get(path);
+                    if (checksum != null) {
+                        result.put(checksumAlgorithmFactory.getName(), checksum);
+                    }
                 }
             }
         }
@@ -232,7 +232,7 @@ public final class SummaryFileTrustedChecksumsSource extends FileTrustedChecksum
                 checksums,
                 getBasedir(session, LOCAL_REPO_PREFIX_DIR, CONFIG_PROP_BASEDIR, true),
                 isOriginAware(session),
-                r -> repositoryKey(session, r));
+                r -> repositoryKey(session, r).get(0));
     }
 
     /**

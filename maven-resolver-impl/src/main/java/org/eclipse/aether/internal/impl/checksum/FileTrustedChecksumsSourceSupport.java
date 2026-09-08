@@ -21,6 +21,7 @@ package org.eclipse.aether.internal.impl.checksum;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -178,17 +179,24 @@ public abstract class FileTrustedChecksumsSourceSupport implements TrustedChecks
     }
 
     /**
-     * Returns repository key to be used on file system layout.
+     * Returns repository keys to be used on file system layout. Always returns a list with at least one element.
+     * Elements are sorted from "most specific" to "least specific" keys.
      *
      * @since 2.0.14
      */
-    protected String repositoryKey(RepositorySystemSession session, ArtifactRepository artifactRepository) {
+    protected List<String> repositoryKey(RepositorySystemSession session, ArtifactRepository artifactRepository) {
+        ArrayList<String> keys = new ArrayList<>();
         if (artifactRepository instanceof RemoteRepository) {
-            return repositoryKeyFunctionFactory
+            RemoteRepository rr = (RemoteRepository) artifactRepository;
+            keys.add(repositoryKeyFunctionFactory
                     .trackingRepositoryKeyFunction(session)
-                    .apply((RemoteRepository) artifactRepository, null);
+                    .apply(rr, null));
+            keys.add(repositoryKeyFunctionFactory
+                    .systemRepositoryKeyFunction(session)
+                    .apply(rr, null));
         } else {
-            return artifactRepository.getId();
+            keys.add(artifactRepository.getId());
         }
+        return keys;
     }
 }

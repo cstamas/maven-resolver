@@ -192,9 +192,11 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
 
     @Override
     public String getPathForRemoteMetadata(Metadata metadata, RemoteRepository repository, String context) {
+        requireNonNull(metadata, "metadata cannot be null");
+        requireNonNull(repository, "repository cannot be null");
         return concatPaths(
                 localPathPrefixComposer.getPathPrefixForRemoteMetadata(metadata, repository),
-                super.getPathForRemoteMetadata(metadata, repository, context));
+                localPathComposer.getPathForMetadata(metadata, getTrackingRepositoryKey(repository, context)));
     }
 
     @Override
@@ -316,7 +318,7 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
                 // (e.g. nid, producing ID-only entries like "artifact>central="), the URL-qualified lookup above
                 // misses. Try the system-wide key function as a fallback: if it matches, the artifact was genuinely
                 // downloaded from this repository under the old key scheme. Accept it and log a migration notice.
-                String legacyKey = getSimpleRepositoryKey(repository, context);
+                String legacyKey = simpleRepositoryKeyFunction.apply(repository, context);
                 if (!legacyKey.equals(trackingKey) && props.get(getKey(path, legacyKey)) != null) {
                     LOGGER.debug(
                             "Accepting locally cached artifact {} via legacy tracking key '{}'"
@@ -358,7 +360,7 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
             for (String context : contexts) {
                 keys.add(getTrackingRepositoryKey(repository, context));
                 if (legacyTrackingFallbackWrite) {
-                    keys.add(getSimpleRepositoryKey(repository, context));
+                    keys.add(simpleRepositoryKeyFunction.apply(repository, context));
                 }
             }
         }
@@ -424,8 +426,8 @@ class EnhancedLocalRepositoryManager extends SimpleLocalRepositoryManager {
 
     /**
      * Returns the tracking key of given repository, derived with the tracking-scoped key function (URL-qualified
-     * by default). Deliberately distinct from {@link #getSimpleRepositoryKey(RemoteRepository, String)}, which follows
-     * the system-wide key function and is used for path composition: tracking must bind an artifact to the full
+     * by default). Deliberately distinct from {@link #simpleRepositoryKeyFunction}, which follows
+     * the Maven 3.9 (Resolver 1.x) key function and is used for path composition: tracking must bind an artifact to the full
      * identity of its origin, while on-disk layout and repository aggregation identity stay unchanged.
      */
     private String getTrackingRepositoryKey(RemoteRepository repository, String context) {

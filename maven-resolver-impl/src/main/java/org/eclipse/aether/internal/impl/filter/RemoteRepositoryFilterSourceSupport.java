@@ -31,7 +31,6 @@ import org.eclipse.aether.spi.connector.filter.RemoteRepositoryFilter;
 import org.eclipse.aether.spi.connector.filter.RemoteRepositoryFilterSource;
 import org.eclipse.aether.spi.remoterepo.RepositoryKeyFunctionFactory;
 import org.eclipse.aether.util.DirectoryUtils;
-import org.eclipse.aether.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +117,6 @@ public abstract class RemoteRepositoryFilterSourceSupport implements RemoteRepos
         keys.add(repositoryKeyFunctionFactory
                 .systemRepositoryKeyFunction(session)
                 .apply(repository, null));
-        keys.add(PathUtils.stringToPathSegment(repository.getId()));
         return keys;
     }
 
